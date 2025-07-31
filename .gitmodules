@@ -1,0 +1,3 @@
+[submodule "secure-submodule"]
+	path = secure-submodule
+	url = https://github.com/508TEN013/secure-submodule.git

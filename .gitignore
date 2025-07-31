@@ -25,3 +25,6 @@ Thumbs.db
 # === Others (optional) ===
 *.swp
 *.bak
+
+# spring boot local settings
+/server/user-api/src/main/resources/application-*.yml

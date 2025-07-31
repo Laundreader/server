@@ -1,0 +1,7 @@
+spring:
+  profiles:
+    active: local  # 운영 배포 시 'prod'로 오버라이드
+
+  jpa:
+    open-in-view: false  # 공통 설정
+

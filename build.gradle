@@ -33,6 +33,7 @@ subprojects {
 
 	dependencies {
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+		implementation 'org.springframework.boot:spring-boot-docker-compose'
 	}
 
 	tasks.withType(Test).configureEach {

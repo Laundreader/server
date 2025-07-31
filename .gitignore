@@ -27,4 +27,5 @@ Thumbs.db
 *.bak
 
 # spring boot local settings
-/server/user-api/src/main/resources/application-*.yml
+/user-api/src/main/resources/application-*.yml
+/docker-compose.yml

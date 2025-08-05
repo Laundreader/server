@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: env.yml
   profiles:
     active: local  # 운영 배포 시 'prod'로 오버라이드
 

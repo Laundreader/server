@@ -3,7 +3,3 @@ rootProject.name = 'server'
 include 'common'
 include 'domain'
 include 'user-api'
-include 'common'
-include 'domain'
-include 'user-api'
-

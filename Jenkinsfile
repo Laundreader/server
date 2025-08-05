@@ -32,8 +32,8 @@ pipeline {
         stage('Prepare env') {
             steps {
                 // .env 파일 복사
-                sh 'cp secure-submodule/.env user-api/src/main/resources/.env'
-\            }
+                sh 'cp secure-submodule/env/env.yml user-api/src/main/resources/env.yml'
+            }
         }
         stage('Build JAR') {
             steps {

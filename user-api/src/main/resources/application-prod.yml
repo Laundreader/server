@@ -1,4 +1,9 @@
 spring:
+  autoconfigure:
+    exclude: //DB 나중에 붙임
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
   docker:
     compose:
       enabled: false
+

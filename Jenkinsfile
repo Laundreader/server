@@ -74,7 +74,10 @@ pipeline {
                     echo "▶️ Active container: ${active}"
                     echo "🔄 Next container: ${next}"
 
-                    // 새 컨테이너 임시 포트에 띄우기 
+                    // 새 컨테이너 임시 포트에 띄우기 전 기존 컨테이너 삭제
+                    sh "docker rm -f ${next} || true"
+
+                    // 새 컨테이너 임시 포트에 띄우기
                     sh "docker run -d --name ${next} --network server_default -p 8081:8080 ${IMAGE_NAME}:latest"
 
                     // 헬스 체크 (예: /health 엔드포인트)

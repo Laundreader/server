@@ -1,9 +1,8 @@
 plugins {
 	id 'java'
+	id 'org.springframework.boot' version '3.2.4'
+	id 'io.spring.dependency-management' version '1.1.4'
 }
-
-group = 'com.laundreader'
-version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
@@ -11,11 +10,11 @@ java {
 	}
 }
 
-allprojects {
-	repositories {
-		mavenCentral()
-	}
+repositories {
+	mavenCentral()
 }
+
+bootJar.enabled = false
 
 task copySecret(type: Copy) {
     copy {
@@ -24,15 +23,20 @@ task copySecret(type: Copy) {
         into './user-api/src/main/resources'
     }
 
-    copy {
-        from './server-setting/env'
-        include "env.yml"
-        into './user-api/src/test/resources'
-    }
+	copy {
+		from './secure-submodule/env'
+		include "env.yml"
+		into './external/src/main/resources'
+	}
 }
 
 subprojects {
 	apply plugin: 'java'
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
+
+	group = 'com.laundreader'
+	version = '0.0.1-SNAPSHOT'
 
 	java {
 		sourceCompatibility = JavaVersion.VERSION_21
@@ -45,12 +49,79 @@ subprojects {
 		}
 	}
 
+	repositories {
+		mavenCentral()
+	}
+
 	dependencies {
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		implementation 'org.springframework.boot:spring-boot-docker-compose'
+		implementation 'org.springframework.boot:spring-boot-starter'
+		implementation 'org.springframework.boot:spring-boot-starter-web'
+		implementation 'org.springframework.boot:spring-boot-starter-validation'
+		implementation 'org.springframework.boot:spring-boot-starter-aop'
+		// implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+		compileOnly 'org.projectlombok:lombok'
+		annotationProcessor 'org.projectlombok:lombok'
+		// implementation 'org.springframework.boot:spring-boot-docker-compose'
+		// runtimeOnly 'com.mysql:mysql-connector-j'
+		testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	}
 
 	tasks.withType(Test).configureEach {
 		useJUnitPlatform()
+	}
+}
+
+project(':common') {
+	bootJar {
+		enabled = false
+	}
+
+	jar {
+		enabled = true
+	}
+
+	dependencies {
+	}
+}
+project(':domain') {
+	bootJar {
+		enabled = false
+	}
+
+	jar {
+		enabled = true
+	}
+
+	dependencies {
+		implementation project(':common')
+	}
+}
+project(':external') {
+	bootJar {
+		enabled = false
+	}
+
+	jar {
+		enabled = true
+	}
+
+	dependencies {
+		implementation project(':common')
+		implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	}
+}
+project(':user-api') {
+	bootJar {
+		enabled = true
+	}
+
+	jar {
+		enabled = false
+	}
+
+	dependencies {
+		implementation project(':common')
+		implementation project(':domain')
+		implementation project(':external')
 	}
 }

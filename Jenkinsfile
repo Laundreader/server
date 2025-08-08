@@ -9,6 +9,7 @@ pipeline {
         IMAGE_TAG = "v${BUILD_NUMBER}"
         BLUE_CONTAINER = "user-api-blue"
         GREEN_CONTAINER = "user-api-green"
+        WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
         DOCKER_COMPOSE_PATH = "secure-submodule/docker/docker-compose.yml"
         USER_API_DOCKERFILE_PATH = "secure-submodule/docker/user-api.Dockerfile"
     }
@@ -32,7 +33,8 @@ pipeline {
         stage('Prepare env') {
             steps {
                 // env 파일 복사
-                sh 'cp secure-submodule/env/env.yml user-api/src/main/resources/env.yml'
+                sh "cp ${WORKSPACE}/secure-submodule/env/env.yml ${WORKSPACE}/user-api/src/main/resources/env.yml"
+                sh "cp ${WORKSPACE}/secure-submodule/env/env.yml ${WORKSPACE}/external/src/main/resources/env.yml"
             }
 
         }
@@ -45,7 +47,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh """
-                        docker build -f ${USER_API_DOCKERFILE_PATH} -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                        docker build -f ${WORKSPACE}/${USER_API_DOCKERFILE_PATH} -t ${IMAGE_NAME}:${IMAGE_TAG} .
                         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
                     """
             }

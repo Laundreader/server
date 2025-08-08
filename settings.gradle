@@ -2,4 +2,5 @@ rootProject.name = 'server'
 
 include 'common'
 include 'domain'
+include 'external'
 include 'user-api'

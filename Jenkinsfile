@@ -52,6 +52,15 @@ pipeline {
                     """
             }
         }
+        stage('Prepare Network') {
+            steps {
+                sh '''
+                    if ! docker network ls --format '{{.Name}}' | grep -w server_default; then
+                        docker network create server_default
+                    fi
+                '''
+            }
+        }
         stage('Deploy') {
             steps {
                 script {

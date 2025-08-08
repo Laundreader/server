@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        gradle 'gradle-9.0.0'
+        gradle 'gradle-8.4'
         jdk 'jdk-21'
     }
     environment {
@@ -33,7 +33,6 @@ pipeline {
             steps {
                 // env 파일 복사
                 sh 'cp secure-submodule/env/env.yml user-api/src/main/resources/env.yml'
-                sh 'cp secure-submodule/env/env.yml external/src/main/resources/env.yml'
             }
 
         }

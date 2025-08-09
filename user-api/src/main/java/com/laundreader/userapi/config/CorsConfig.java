@@ -14,10 +14,10 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // 모든 경로
-                        .allowedOriginPatterns("*") // 허용할 프론트 주소
+                        .allowedOriginPatterns("https://laundreader.com", "http://localhost:3000")// 허용할 프론트 주소
                         .allowedMethods("*") // 모든 HTTP 메서드
                         .allowedHeaders("*")
-                        .allowCredentials(true); // 쿠키 포함 가능
+                        .allowCredentials(false); // 쿠키 포함 가능
             }
         };
     }

@@ -5,6 +5,7 @@ pipeline {
         jdk 'jdk-21'
     }
     environment {
+        DOCKER_BUILDKIT = "0"
         IMAGE_NAME = 'user-api'
         IMAGE_TAG = "v${BUILD_NUMBER}"
         BLUE_CONTAINER = "user-api-blue"

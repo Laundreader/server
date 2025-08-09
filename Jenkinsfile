@@ -39,7 +39,13 @@ pipeline {
             }
 
         }
-        stage('Docker Build (with Gradle inside') {
+        stage('Build JAR') {
+            steps {
+                sh "chmod +x ./gradlew"
+                sh './gradlew :user-api:buildNeeded --stacktrace --info -x test'
+            }
+        }
+        stage('Docker Build'){
             steps {
                 sh """
                     docker build \
@@ -65,6 +71,8 @@ pipeline {
 
                      // 새 컨테이너 시작
                     sh "docker run -d --name ${next} -p 8080:8080 ${IMAGE_NAME}:latest"
+
+                    sh "docker system prune -a -f"
 
                     echo "✅ Traffic switched to ${next} on port 8080"
                 }

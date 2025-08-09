@@ -10,7 +10,7 @@ pipeline {
         IMAGE_TAG = "v${BUILD_NUMBER}"
         BLUE_CONTAINER = "user-api-blue"
         GREEN_CONTAINER = "user-api-green"
-        WORKSPACE = "/laundreader-prod"
+        WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
         DOCKER_COMPOSE_PATH = "/secure-submodule/docker/docker-compose.yml"
         USER_API_DOCKERFILE_PATH = "/secure-submodule/docker/user-api.Dockerfile"
     }

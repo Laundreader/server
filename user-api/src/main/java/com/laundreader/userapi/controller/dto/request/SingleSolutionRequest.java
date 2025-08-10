@@ -37,6 +37,7 @@ public class SingleSolutionRequest {
         return LaundryInfoDTO.builder()
                 .materials(materials)
                 .color(color)
+                .type(type)
                 .hasPrintOrTrims(hasPrintOrTrims)
                 .additionalInfo(additionalInfo)
                 .laundrySymbols(

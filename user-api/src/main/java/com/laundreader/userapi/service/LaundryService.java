@@ -67,6 +67,7 @@ public class LaundryService {
             LaundrySymbolsDTO laundrySymbols = objectMapper.readValue(laundrySymbolAnalysis, LaundrySymbolsDTO.class);
             filterLaundrySymbols(laundrySymbols);
             response.setLaundrySymbols(laundrySymbols);
+            log.info(response.toString());
         } catch (JsonProcessingException e) {
             log.error("clova 라벨 텍스트 분석 json 추출 실패");
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
@@ -81,6 +82,7 @@ public class LaundryService {
 
         try {
             String inputData = objectMapper.writeValueAsString(laundryInfo);
+            log.info(inputData);
             String solution = clovaStudioService.laundrySolutionSingle(inputData);
             log.info(solution);
             response = objectMapper.readValue(solution, SingleSolutionResponse.class);
@@ -105,6 +107,7 @@ public class LaundryService {
         // 단일 세탁 솔루션 요청
         try {
             String inputData = objectMapper.writeValueAsString(laundryInfo);
+            log.info(inputData);
             String solution = clovaStudioService.laundrySolutionSingle(inputData, image.getData());
             log.info(solution);
             response = objectMapper.readValue(solution, SingleSolutionResponse.class);
@@ -120,6 +123,7 @@ public class LaundryService {
 
         try {
             String inputData = objectMapper.writeValueAsString(hamper);
+            log.info(inputData);
             String solution = clovaStudioService.laundrySolutionHamper(inputData);
             log.info(solution);
             response = objectMapper.readValue(solution, HamperSolutionResponse.class);

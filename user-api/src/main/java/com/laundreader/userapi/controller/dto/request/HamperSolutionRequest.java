@@ -57,6 +57,15 @@ public class HamperSolutionRequest {
                                                                 .build())
                                                         .toList()
                                                         : null
+                                        ).solutions(
+                                                l.getSolutions() != null
+                                                        ? l.getSolutions().stream()
+                                                        .map(s -> HamperDTO.laundryDTO.Solution.builder()
+                                                                .name(s.getName())
+                                                                .contents(s.getContents())
+                                                                .build())
+                                                        .toList()
+                                                        : null
                                         )
                                         .build()
                                 )
@@ -64,6 +73,5 @@ public class HamperSolutionRequest {
                 )
                 .build();
     }
-
 
 }

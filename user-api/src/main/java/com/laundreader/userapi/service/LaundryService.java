@@ -34,6 +34,7 @@ public class LaundryService {
     private final ClovaStudioService clovaStudioService;
     private final ObjectMapper objectMapper;
 
+
     public LabelAnalysisResponse getLabelAnalysis(ImageDTO image) {
         LabelAnalysisResponse response;
 
@@ -51,23 +52,18 @@ public class LaundryService {
             throw new Exception500(ErrorMessage.LAUNDRY_LABEL_NOT_RECOGNIZED);
         }
 
-        // 라벨 텍스트 분석 -> 의류 정보 추론
-        String labelTextAnalysis = clovaStudioService.labelTextAnalysis(ocrText, image.getData());
+        // OCR 텍스트 + 세탁 기호 분석 -> 의류 정보 추론
+        String labelAnalysis = clovaStudioService.labelAnalysis(ocrText, image.getData());
         try {
-            response = objectMapper.readValue(labelTextAnalysis, LabelAnalysisResponse.class);
-        } catch (JsonProcessingException e) {
-            log.error("clova 라벨 텍스트 분석 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
-        }
+            log.info(labelAnalysis);
+            response = objectMapper.readValue(labelAnalysis, LabelAnalysisResponse.class);
 
-        // 세탁 기호 분석
-        String laundrySymbolAnalysis = clovaStudioService.laundrySymbolAnalysis(labelTextAnalysis, image.getData());
-        try {
-            log.info(laundrySymbolAnalysis);
-            LaundrySymbolsDTO laundrySymbols = objectMapper.readValue(laundrySymbolAnalysis, LaundrySymbolsDTO.class);
+            LaundrySymbolsDTO laundrySymbols = response.getLaundrySymbols();
             filterLaundrySymbols(laundrySymbols);
             response.setLaundrySymbols(laundrySymbols);
+
             log.info(response.toString());
+
         } catch (JsonProcessingException e) {
             log.error("clova 라벨 텍스트 분석 json 추출 실패");
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);

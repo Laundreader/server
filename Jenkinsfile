@@ -47,6 +47,7 @@ pipeline {
         }
         stage('Docker Build'){
             steps {
+                sh "docker system prune -a --volumes -f"
                 sh """
                     docker build \
                         -f ${WORKSPACE}${USER_API_DOCKERFILE_PATH} \

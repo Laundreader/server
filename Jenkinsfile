@@ -52,16 +52,25 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
+                    //  무중단 설정 전 GREEN_CONTAINER를 8080으로 띄우고 있었음. 그에 맞게 매핑
+                    def containerPortMap = [
+                        (GREEN_CONTAINER): 8080,
+                        (BLUE_CONTAINER) : 8081
+                    ]
                     // 현재 실행 중인 컨테이너 확인 
-                    def active = sh(script: "docker ps --filter 'name=${BLUE_CONTAINER}' --format '{{.Names}}'", returnStdout: true).trim()
-                    def next = active ? GREEN_CONTAINER : BLUE_CONTAINER
+                    def active = sh(
+                        script: "docker ps --filter 'name=${GREEN_CONTAINER}' --filter 'name=${BLUE_CONTAINER}' --format '{{.Names}}'",
+                        returnStdout: true
+                    ).trim()
 
-                    //  GREEN:8080, BLUE:8081 R(무중단 설정 전 GREEN_CONTAINER를 8080으로 띄우고 있었으므로 그에 맞게 매핑)
+                     // 현재가 없으면 BLUE → 첫 배포
+                    def next = (!active || active == BLUE_CONTAINER) ? GREEN_CONTAINER : BLUE_CONTAINER
+
                     // 새 컨테이너 포트 결정
-                    def active_port = active == GREEN_CONTAINER ? 8080 : 8081
-                    def next_port = active == GREEN_CONTAINER ? 8081 : 8080
+                    def active_port = active ? containerPortMap[active] : null
+                    def next_port = containerPortMap[next]
 
-                    echo "▶️ Active container: ${active} (port ${active_port})"
+                    echo "▶️ Active container: ${active ?: 'None'} ${active_port ? "(port ${active_port})" : ''}"
                     echo "🔄 Next container: ${next} (port ${next_port})"
 
                     // 새 컨테이너 시작
@@ -83,7 +92,7 @@ pipeline {
                     """
 
                     if(active) {
-                        echo "▶️ Stopping old container: ${active}"
+                        echo "🛑 Stopping old container: ${active}"
                         sh "docker rm -f ${active} || true"
                     }
 

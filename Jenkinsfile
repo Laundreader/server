@@ -5,7 +5,6 @@ pipeline {
         jdk 'jdk-21'
     }
     environment {
-        DOCKER_BUILDKIT = "0"
         IMAGE_NAME = 'user-api'
         IMAGE_TAG = "v${BUILD_NUMBER}"
         BLUE_CONTAINER = "user-api-blue"
@@ -13,6 +12,7 @@ pipeline {
         WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
         DOCKER_COMPOSE_PATH = "/secure-submodule/docker/docker-compose.yml"
         USER_API_DOCKERFILE_PATH = "/secure-submodule/docker/user-api.Dockerfile"
+        NGINX_UPSTREAM_CONF = "/etc/nginx/conf.d/user-api-upstream.conf"
     }
     stages {
         stage('Checkout') {
@@ -31,14 +31,6 @@ pipeline {
                 ])
             }
         }
-        stage('Prepare env') {
-            steps {
-                // env 파일 복사
-                sh "cp ${WORKSPACE}/secure-submodule/env/env.yml ${WORKSPACE}/user-api/src/main/resources/env.yml"
-                sh "cp ${WORKSPACE}/secure-submodule/env/env.yml ${WORKSPACE}/external/src/main/resources/env.yml"
-            }
-
-        }
         stage('Build JAR') {
             steps {
                 sh "chmod +x ./gradlew"
@@ -47,7 +39,7 @@ pipeline {
         }
         stage('Docker Build'){
             steps {
-                sh "docker system prune -a --volumes -f"
+                sh "docker image prune -a -f"
                 sh """
                     docker build \
                         -f ${WORKSPACE}${USER_API_DOCKERFILE_PATH} \
@@ -64,18 +56,38 @@ pipeline {
                     def active = sh(script: "docker ps --filter 'name=${BLUE_CONTAINER}' --format '{{.Names}}'", returnStdout: true).trim()
                     def next = active ? GREEN_CONTAINER : BLUE_CONTAINER
 
-                    echo "▶️ Active container: ${active}"
-                    echo "🔄 Next container: ${next}"
+                    //  GREEN:8080, BLUE:8081 R(무중단 설정 전 GREEN_CONTAINER를 8080으로 띄우고 있었으므로 그에 맞게 매핑)
+                    // 새 컨테이너 포트 결정
+                    def active_port = active == GREEN_CONTAINER ? 8080 : 8081
+                    def next_port = active == GREEN_CONTAINER ? 8081 : 8080
 
-                    sh "docker rm -f ${active} || true"
-                    sh "docker rm -f ${next} || true"
+                    echo "▶️ Active container: ${active} (port ${active_port})"
+                    echo "🔄 Next container: ${next} (port ${next_port})"
 
-                     // 새 컨테이너 시작
-                    sh "docker run -d --name ${next} -p 8080:8080 ${IMAGE_NAME}:latest"
+                    // 새 컨테이너 시작
+                    sh "docker run -d --name ${next} -p ${next_port}:8080 ${IMAGE_NAME}:latest"
 
-                    sh "docker system prune -a -f"
+                    // 컨테이너 정상 구동 체크
+                    sh """
+                        for i in {1..10}; do
+                            curl -fs http://localhost:${next_port}/health && break
+                            echo 'Waiting for container...'
+                            sleep 3
+                        done || { echo '❌ Container failed to start'; exit 1; }
+                    """
 
-                    echo "✅ Traffic switched to ${next} on port 8080"
+                    // Nginx upstream 갱신 및 reload
+                    sh """
+                        echo 'upstream user_api_upstream { server localhost:${next_port}; }' > ${NGINX_UPSTREAM_CONF}
+                        nginx -s reload
+                    """
+
+                    if(active) {
+                        echo "▶️ Stopping old container: ${active}"
+                        sh "docker rm -f ${active} || true"
+                    }
+
+                    echo "✅ Traffic switched to ${next} (port ${next_port}) via Nginx"
                 }
             }
         }

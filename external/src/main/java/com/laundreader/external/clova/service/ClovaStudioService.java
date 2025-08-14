@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.common.util.JsonExtractor;
+import com.laundreader.common.util.PromptUtils;
 import com.laundreader.common.util.TrueFalseExtractor;
+import com.laundreader.external.clova.ClovaChatMessageBuilder;
 import com.laundreader.external.clova.ClovaStudioClient;
+import com.laundreader.external.clova.ClovaThinkingMessageBuilder;
 import com.laundreader.external.clova.dto.ClovaChatRequest;
 import com.laundreader.external.clova.dto.ClovaChatResponse;
 import com.laundreader.external.clova.dto.ClovaThinkingRequest;
@@ -26,82 +29,38 @@ import java.util.List;
 @Slf4j
 public class ClovaStudioService {
     private final ClovaStudioClient client;
-    private final ObjectMapper objectMapper;
 
-
-    public String imageAnalysis(String analysisType,String base64Data){
-        List<ClovaChatRequest.Message> messageList = new ArrayList<>();
-
-        // SYSTEM
-        String prompt = null;
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("prompt/image-analysis-prompt.md");
-            prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.error("프롬프트 변환 실패");
-            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
-        }
-
-        ClovaChatRequest.Message.TextContent systemContent = new ClovaChatRequest.Message.TextContent(prompt);
-        ClovaChatRequest.Message systemMessage = new ClovaChatRequest.Message(Role.SYSTEM.getValue(), List.of(systemContent));
-        messageList.add(systemMessage);
-
-        // USER
-        // 분석할 이미지 종류 text
-        List<ClovaChatRequest.Message.Content> userContents = new ArrayList<>();
-        ClovaChatRequest.Message.TextContent userTextContent = new ClovaChatRequest.Message.TextContent(analysisType);
-        userContents.add(userTextContent);
-
-        // 분석할 이미지 데이터
-        ClovaChatRequest.Message.DataUriContent.DataUri dataUri =  new ClovaChatRequest.Message.DataUriContent.DataUri(base64Data);
-        ClovaChatRequest.Message.DataUriContent userDataUriContent = new ClovaChatRequest.Message.DataUriContent(dataUri);
-        userContents.add(userDataUriContent);
-
-        ClovaChatRequest.Message userMessage = new ClovaChatRequest.Message(Role.USER.getValue(), userContents);
-        messageList.add(userMessage);
-
+    public boolean imageAnalysis(String analysisType,String base64){
         // Request
-        ClovaChatResponse clovaChatResponse = client.callChat(new ClovaChatRequest(messageList));
-        return TrueFalseExtractor.extractFirstTrueOrFalse(clovaChatResponse.getResult().getMessage().getContent());
+        ClovaChatRequest request = new ClovaChatMessageBuilder()
+                .addSystemMessage("prompt/system/image-analysis-prompt.md")
+                .addUserMessage(analysisType, base64)
+                .build();
 
+        // Response
+        ClovaChatResponse clovaChatResponse = client.callChat(request);
+        return TrueFalseExtractor.extractFirstTrueOrFalse(clovaChatResponse.getResult().getMessage().getContent());
     }
 
-    public String labelAnalysis(String inputData,String base64Data) {
-        List<ClovaChatRequest.Message> messageList = new ArrayList<>();
-
-        // SYSTEM
-        String prompt = null;
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("prompt/label-analyis-prompt.md");
-            prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.error("프롬프트 변환 실패");
-            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
-        }
-
-        ClovaChatRequest.Message.TextContent systemContent = new ClovaChatRequest.Message.TextContent(prompt);
-        ClovaChatRequest.Message systemMessage = new ClovaChatRequest.Message(Role.SYSTEM.getValue(), List.of(systemContent));
-        messageList.add(systemMessage);
-
-        // USER
-        // 분석할 text
-        List<ClovaChatRequest.Message.Content> userContents = new ArrayList<>();
-        ClovaChatRequest.Message.TextContent userTextContent = new ClovaChatRequest.Message.TextContent(inputData);
-        userContents.add(userTextContent);
-
-        // 분석할 이미지 데이터
-        ClovaChatRequest.Message.DataUriContent.DataUri dataUri =  new ClovaChatRequest.Message.DataUriContent.DataUri(base64Data);
-        ClovaChatRequest.Message.DataUriContent userDataUriContent = new ClovaChatRequest.Message.DataUriContent(dataUri);
-        userContents.add(userDataUriContent);
-
-        ClovaChatRequest.Message userMessage = new ClovaChatRequest.Message(Role.USER.getValue(), userContents);
-        messageList.add(userMessage);
+    public String labelAnalysis(String ocrText, String labelBase64, String clothesBase64) {
+        String systemPrompt = PromptUtils.loadPrompt("prompt/system/label-analysis-prompt.md");
+        String userFinalTurnPrompt = ocrText + PromptUtils.loadPrompt("prompt/user/label-analysis-prompt.md");
 
         // Request
-        ClovaChatResponse clovaChatResponse = client.callChat(new ClovaChatRequest(messageList));
+        ClovaChatMessageBuilder builder = new ClovaChatMessageBuilder()
+                .addSystemMessage(systemPrompt)
+                .addUserMessage("", labelBase64);
 
-        // json 형식의 답변이 왔는지 검증
-        String jsonString = JsonExtractor.extractFirstJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
+        if (clothesBase64 != null) {
+            builder.addUserMessage(userFinalTurnPrompt, clothesBase64);
+        } else {
+            builder.addUserMessage(userFinalTurnPrompt);
+        }
+
+        ClovaChatRequest request = builder.build();
+
+        // Response
+        ClovaChatResponse clovaChatResponse = client.callChat(request);
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
@@ -114,33 +73,16 @@ public class ClovaStudioService {
 
     // 이미지 없는 단일 세탁 솔루션
     public String laundrySolutionSingle(String inputData) {
-        List<ClovaChatRequest.Message> messageList = new ArrayList<>();
-
-        // SYSTEM
-        String prompt = null;
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("prompt/laundry-solution-single-prompt.md");
-            prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.error("프롬프트 변환 실패");
-            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
-        }
-
-        ClovaChatRequest.Message.TextContent systemContent = new ClovaChatRequest.Message.TextContent(prompt);
-        ClovaChatRequest.Message systemMessage = new ClovaChatRequest.Message(Role.SYSTEM.getValue(), List.of(systemContent));
-        messageList.add(systemMessage);
-
-        // USER
-        // 분석할 text
-        List<ClovaChatRequest.Message.Content> userContents = new ArrayList<>();
-        ClovaChatRequest.Message.TextContent userTextContent = new ClovaChatRequest.Message.TextContent(inputData);
-        userContents.add(userTextContent);
-
-        ClovaChatRequest.Message userMessage = new ClovaChatRequest.Message(Role.USER.getValue(), userContents);
-        messageList.add(userMessage);
+        String systemPrompt = PromptUtils.loadPrompt("prompt/system/laundry-solution-single-prompt.md");
 
         // Request
-        ClovaChatResponse clovaChatResponse = client.callChat(new ClovaChatRequest(messageList));
+        ClovaChatRequest request = new ClovaChatMessageBuilder()
+                .addSystemMessage(systemPrompt)
+                .addUserMessage(inputData)
+                .build();
+
+        // Response
+        ClovaChatResponse clovaChatResponse = client.callChat(request);
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
@@ -152,39 +94,17 @@ public class ClovaStudioService {
     }
 
     // 이미지 있는 단일 세탁 솔루션
-    public String laundrySolutionSingle(String inputData,String base64Data) {
-        List<ClovaChatRequest.Message> messageList = new ArrayList<>();
-
-        // SYSTEM
-        String prompt = null;
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("prompt/laundry-solution-single-prompt.md");
-            prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.error("프롬프트 변환 실패");
-            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
-        }
-
-        ClovaChatRequest.Message.TextContent systemContent = new ClovaChatRequest.Message.TextContent(prompt);
-        ClovaChatRequest.Message systemMessage = new ClovaChatRequest.Message(Role.SYSTEM.getValue(), List.of(systemContent));
-        messageList.add(systemMessage);
-
-        // USER
-        // 분석할 text
-        List<ClovaChatRequest.Message.Content> userContents = new ArrayList<>();
-        ClovaChatRequest.Message.TextContent userTextContent = new ClovaChatRequest.Message.TextContent(inputData);
-        userContents.add(userTextContent);
-
-        // 분석할 이미지 데이터
-        ClovaChatRequest.Message.DataUriContent.DataUri dataUri =  new ClovaChatRequest.Message.DataUriContent.DataUri(base64Data);
-        ClovaChatRequest.Message.DataUriContent userDataUriContent = new ClovaChatRequest.Message.DataUriContent(dataUri);
-        userContents.add(userDataUriContent);
-
-        ClovaChatRequest.Message userMessage = new ClovaChatRequest.Message(Role.USER.getValue(), userContents);
-        messageList.add(userMessage);
+    public String laundrySolutionSingle(String inputData,String base64) {
+        String systemPrompt = PromptUtils.loadPrompt("prompt/system/laundry-solution-single-prompt.md");
 
         // Request
-        ClovaChatResponse clovaChatResponse = client.callChat(new ClovaChatRequest(messageList));
+        ClovaChatRequest request = new ClovaChatMessageBuilder()
+                .addSystemMessage(systemPrompt)
+                .addUserMessage(inputData, base64)
+                .build();
+
+        // Response
+        ClovaChatResponse clovaChatResponse = client.callChat(request);
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
@@ -196,30 +116,16 @@ public class ClovaStudioService {
     }
 
     public String laundrySolutionHamper(String inputData) {
-        List<ClovaThinkingRequest.Message> messageList = new ArrayList<>();
-
-        // SYSTEM
-        String prompt = null;
-        try {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("prompt/laundry-solution-hamper-prompt.md");
-            prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.error("프롬프트 변환 실패");
-            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
-        }
-
-        ClovaThinkingRequest.Message.Content systemContent = new ClovaThinkingRequest.Message.Content(prompt);
-        ClovaThinkingRequest.Message systemMessage = new ClovaThinkingRequest.Message(Role.SYSTEM.getValue(), List.of(systemContent));
-        messageList.add(systemMessage);
-
-        // USER
-        // 분석할 text
-        ClovaThinkingRequest.Message.Content userContents = new ClovaThinkingRequest.Message.Content(inputData);
-        ClovaThinkingRequest.Message userMessage = new ClovaThinkingRequest.Message(Role.USER.getValue(), List.of(userContents));
-        messageList.add(userMessage);
+        String systemPrompt = PromptUtils.loadPrompt("prompt/system/laundry-solution-hamper-prompt.md");
 
         // Request
-        ClovaThinkingResponse clovaThinkingResponse = client.callThinking(new ClovaThinkingRequest(messageList));
+        ClovaThinkingRequest clovaThinkingRequest = new ClovaThinkingMessageBuilder()
+                .addSystemMessage(systemPrompt)
+                .addUserMessage(inputData)
+                .build();
+
+        // Response
+        ClovaThinkingResponse clovaThinkingResponse = client.callThinking(clovaThinkingRequest);
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {

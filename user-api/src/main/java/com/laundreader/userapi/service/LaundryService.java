@@ -53,7 +53,7 @@ public class LaundryService {
         }
 
         // OCR 텍스트 + 세탁 기호 분석 -> 의류 정보 추론
-        String labelAnalysis = clovaStudioService.labelAnalysis(ocrText, image.getData());
+        String labelAnalysis = clovaStudioService.labelAnalysis(ocrText, image.getData(),null);
         try {
             log.info(labelAnalysis);
             response = objectMapper.readValue(labelAnalysis, LabelAnalysisResponse.class);

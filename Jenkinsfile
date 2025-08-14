@@ -39,7 +39,6 @@ pipeline {
         }
         stage('Docker Build'){
             steps {
-                sh "docker image prune -a -f"
                 sh """
                     docker build \
                         -f ${WORKSPACE}${USER_API_DOCKERFILE_PATH} \

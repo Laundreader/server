@@ -44,7 +44,7 @@ pipeline {
                         -f ${WORKSPACE}${USER_API_DOCKERFILE_PATH} \
                         -t ${IMAGE_NAME}:${IMAGE_TAG} \
                         -t ${IMAGE_NAME}:latest \
-                        .
+                        ${WORKSPACE}/user-api/build/libs
                 """
             }
         }

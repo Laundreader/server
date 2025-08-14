@@ -103,12 +103,12 @@ public class ClovaStudioService {
         // json 형식의 답변이 왔는지 검증
         String jsonString = JsonExtractor.extractFirstJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
 
+        // json 형식의 답변이 왔는지 검증 후 return
         try {
-            objectMapper.readTree(jsonString);
-            return jsonString;
+            return JsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
-            log.error("clova 응답에서 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            log.error(e.getMessage());
+            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
         }
     }
 
@@ -142,15 +142,12 @@ public class ClovaStudioService {
         // Request
         ClovaChatResponse clovaChatResponse = client.callChat(new ClovaChatRequest(messageList));
 
-        // json 형식의 답변이 왔는지 검증
-        String jsonString = JsonExtractor.extractFirstJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
-
+        // json 형식의 답변이 왔는지 검증 후 return
         try {
-            objectMapper.readTree(jsonString);
-            return jsonString;
+            return JsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
-            log.error("clova 응답에서 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            log.error(e.getMessage());
+            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
         }
     }
 
@@ -189,15 +186,12 @@ public class ClovaStudioService {
         // Request
         ClovaChatResponse clovaChatResponse = client.callChat(new ClovaChatRequest(messageList));
 
-        // json 형식의 답변이 왔는지 검증
-        String jsonString = JsonExtractor.extractFirstJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
-
+        // json 형식의 답변이 왔는지 검증 후 return
         try {
-            objectMapper.readTree(jsonString);
-            return jsonString;
+            return JsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
-            log.error("clova 응답에서 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            log.error(e.getMessage());
+            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
         }
     }
 
@@ -227,15 +221,12 @@ public class ClovaStudioService {
         // Request
         ClovaThinkingResponse clovaThinkingResponse = client.callThinking(new ClovaThinkingRequest(messageList));
 
-        // json 형식의 답변이 왔는지 검증
-        String jsonString = JsonExtractor.extractFirstJsonBlock(clovaThinkingResponse.getResult().getMessage().getContent());
-
+        // json 형식의 답변이 왔는지 검증 후 return
         try {
-            objectMapper.readTree(jsonString);
-            return jsonString;
+            return JsonExtractor.extractValidJsonBlock(clovaThinkingResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
-            log.error("clova 응답에서 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            log.error(e.getMessage());
+            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
         }
     }
 }

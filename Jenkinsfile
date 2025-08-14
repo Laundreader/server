@@ -40,7 +40,7 @@ pipeline {
         stage('Docker Build'){
             steps {
                 sh """
-                    docker build \
+                    DOCKER_BUILDKIT=0 docker build \
                         -f ${WORKSPACE}${USER_API_DOCKERFILE_PATH} \
                         -t ${IMAGE_NAME}:${IMAGE_TAG} \
                         -t ${IMAGE_NAME}:latest \

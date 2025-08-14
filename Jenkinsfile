@@ -88,8 +88,22 @@ pipeline {
                     // Nginx upstream 갱신 및 reload
                     sh """
                         echo 'upstream user_api_upstream { server localhost:${next_port}; }' > ${NGINX_UPSTREAM_CONF}
-                        nginx -s reload
                     """
+
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'host',
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: 'sudo systemctl reload nginx',
+                                        execTimeout: 120000
+                                    )
+                                ],
+                                verbose: true
+                            )
+                        ]
+                    )
 
                     if(active) {
                         echo "🛑 Stopping old container: ${active}"

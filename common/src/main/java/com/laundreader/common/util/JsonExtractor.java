@@ -1,9 +1,26 @@
 package com.laundreader.common.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class JsonExtractor {
+
+
+    public static String extractValidJsonBlock(String text) {
+        String jsonString = extractFirstJsonBlock(text);
+        if (jsonString == null) {
+            throw new RuntimeException("JSON 블록이 없습니다.");
+        }
+
+        try {
+            new ObjectMapper().readTree(jsonString); // JSON 형식 검증
+            return jsonString;
+        } catch (Exception e) {
+            throw new RuntimeException("유효하지 않은 JSON 블록입니다.", e);
+        }
+    }
 
     /**
      * 텍스트에서 가장 먼저 나오는 유효한 JSON 블록 ({...} 또는 [...])을 추출합니다.
@@ -12,7 +29,7 @@ public class JsonExtractor {
      * @param text 원본 텍스트
      * @return 추출된 JSON 문자열 또는 null
      */
-    public static String extractFirstJsonBlock(String text) {
+    private static String extractFirstJsonBlock(String text) {
         if (text == null || text.isBlank()) return null;
 
         int start = -1;

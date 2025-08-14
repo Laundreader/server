@@ -12,6 +12,7 @@ pipeline {
         WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
         DOCKER_COMPOSE_PATH = "/secure-submodule/docker/docker-compose.yml"
         USER_API_DOCKERFILE_PATH = "/secure-submodule/docker/user-api.Dockerfile"
+        HOST_IP = "49.50.133.246"
         NGINX_UPSTREAM_CONF = "/etc/nginx/conf.d/user-api-upstream.conf"
     }
     stages {
@@ -58,7 +59,7 @@ pipeline {
                     ]
                     // 현재 실행 중인 컨테이너 확인 
                     def active = sh(
-                        script: "docker ps --filter 'name=${GREEN_CONTAINER}' --filter 'name=${BLUE_CONTAINER}' --format '{{.Names}}'",
+                        script: "docker ps --filter 'name=${GREEN_CONTAINER}' --filter 'name=${BLUE_CONTAINER}' --format '{{.Names}}' | head -n 1",
                         returnStdout: true
                     ).trim()
 
@@ -73,6 +74,7 @@ pipeline {
                     echo "🔄 Next container: ${next} (port ${next_port})"
 
                     // 새 컨테이너 시작
+                    sh "docker rm -f ${next} || true"
                     sh "docker run -d --name ${next} -p ${next_port}:8080 ${IMAGE_NAME}:latest"
 
                     // 컨테이너 정상 구동 체크
@@ -85,24 +87,14 @@ pipeline {
                     """
 
                     // Nginx upstream 갱신 및 reload
-                    sh """
-                        echo 'upstream user_api_upstream { server localhost:${next_port}; }' > ${NGINX_UPSTREAM_CONF}
-                    """
-
-                    sshPublisher(
-                        publishers: [
-                            sshPublisherDesc(
-                                configName: 'host',
-                                transfers: [
-                                    sshTransfer(
-                                        execCommand: 'sudo systemctl reload nginx',
-                                        execTimeout: 120000
-                                    )
-                                ],
-                                verbose: true
-                            )
-                        ]
-                    )
+                    sshagent (credentials: ['jenkins-ssh-key']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no root@HOST_IP \\
+                            "echo 'upstream user_api_upstream { server localhost:${next_port}; }' > ${NGINX_UPSTREAM_CONF} &&
+                            nginx -t &&
+                            systemctl reload nginx"
+                        """
+                    }
 
                     if(active) {
                         echo "🛑 Stopping old container: ${active}"

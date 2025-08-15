@@ -1,21 +1,26 @@
 package com.laundreader.common.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+@Component
+@RequiredArgsConstructor
 public class JsonExtractor {
 
+    private final ObjectMapper objectMapper;
 
-    public static String extractValidJsonBlock(String text) {
+    public String extractValidJsonBlock(String text) {
         String jsonString = extractFirstJsonBlock(text);
         if (jsonString == null) {
             throw new RuntimeException("JSON 블록이 없습니다.");
         }
 
         try {
-            new ObjectMapper().readTree(jsonString); // JSON 형식 검증
+            objectMapper.readTree(jsonString); // JSON 형식 검증
             return jsonString;
         } catch (Exception e) {
             throw new RuntimeException("유효하지 않은 JSON 블록입니다.", e);
@@ -29,8 +34,12 @@ public class JsonExtractor {
      * @param text 원본 텍스트
      * @return 추출된 JSON 문자열 또는 null
      */
-    private static String extractFirstJsonBlock(String text) {
+    private String extractFirstJsonBlock(String text) {
         if (text == null || text.isBlank()) return null;
+
+        // 1. 주석 제거
+        text = text.replaceAll("//.*(?=\\n)", "");  // 한 줄 주석 제거
+        text = text.replaceAll("/\\*.*?\\*/", ""); // 블록 주석 제거
 
         int start = -1;
         char openingChar = 0;

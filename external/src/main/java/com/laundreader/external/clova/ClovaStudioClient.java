@@ -72,7 +72,6 @@ public class ClovaStudioClient {
                 .block(); // 동기 호출
 
         try {
-             // log.info(responseBody);
             return objectMapper.readValue(responseBody, responseType);
         } catch (Exception e) {
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);

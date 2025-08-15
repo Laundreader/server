@@ -38,12 +38,6 @@ public class LaundryService {
     public LabelAnalysisResponse getLabelAnalysis(ImageDTO image) {
         LabelAnalysisResponse response;
 
-        // 라벨 이미지가 맞는지 분석
-        String result = clovaStudioService.imageAnalysis(ImageAnalysisType.LABEL.getValue(), image.getData());
-        if(result.equals("false")){
-            throw new Exception400("이미지 입력 오류", ErrorMessage.LAUNDRY_LABEL_NOT_RECOGNIZED);
-        }
-
         // OCR 텍스트 추출
         String ocrText;
         try {
@@ -92,13 +86,6 @@ public class LaundryService {
     // 이미지 있는 단일 세탁 솔루션
     public SingleSolutionResponse getSingleSolution(LaundryInfoDTO laundryInfo, ImageDTO image){
         SingleSolutionResponse response;
-
-        // 의류 이미지가 맞는지 분석
-        String result = clovaStudioService.imageAnalysis(ImageAnalysisType.CLOTH.getValue(), image.getData());
-        log.info(result);
-        if(result.equals("false")){
-            throw new Exception400("이미지 입력 오류", ErrorMessage.CLOTHING_NOT_RECOGNIZED);
-        }
 
         // 단일 세탁 솔루션 요청
         try {

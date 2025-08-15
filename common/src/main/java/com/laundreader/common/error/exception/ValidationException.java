@@ -22,7 +22,7 @@ public class ValidationException extends RuntimeException {
     }
 
     public ApiUtils.ApiResult<?> body() {
-        return ApiUtils.error(validationErrors);
+        return ApiUtils.error(status(), validationErrors);
     }
 
     public HttpStatus status() {

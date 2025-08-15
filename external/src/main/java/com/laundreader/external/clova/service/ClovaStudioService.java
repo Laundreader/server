@@ -29,6 +29,7 @@ import java.util.List;
 @Slf4j
 public class ClovaStudioService {
     private final ClovaStudioClient client;
+    private final JsonExtractor jsonExtractor;
 
     public boolean imageAnalysis(String analysisType,String base64){
         // Request
@@ -64,7 +65,7 @@ public class ClovaStudioService {
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
-            return JsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
+            return jsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
@@ -86,7 +87,7 @@ public class ClovaStudioService {
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
-            return JsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
+            return jsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
@@ -108,7 +109,7 @@ public class ClovaStudioService {
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
-            return JsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
+            return jsonExtractor.extractValidJsonBlock(clovaChatResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");
@@ -129,7 +130,7 @@ public class ClovaStudioService {
 
         // json 형식의 답변이 왔는지 검증 후 return
         try {
-            return JsonExtractor.extractValidJsonBlock(clovaThinkingResponse.getResult().getMessage().getContent());
+            return jsonExtractor.extractValidJsonBlock(clovaThinkingResponse.getResult().getMessage().getContent());
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED + ": e.getMessage()");

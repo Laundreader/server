@@ -21,8 +21,8 @@ public class ValidationException extends RuntimeException {
         this.validationErrors = validationErrors;
     }
 
-    public ApiUtils.ApiResult<?> body() {
-        return ApiUtils.error(status(), validationErrors);
+    public ApiUtils.ApiError<?> body() {
+        return ApiUtils.error(validationErrors);
     }
 
     public HttpStatus status() {

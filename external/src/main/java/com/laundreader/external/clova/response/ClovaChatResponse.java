@@ -1,7 +1,6 @@
-package com.laundreader.external.clova.dto;
+package com.laundreader.external.clova.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import lombok.Getter;
 
 @Getter

@@ -1,4 +1,4 @@
-package com.laundreader.userapi.controller.dto;
+package com.laundreader.userapi.service.dto;
 
 import com.laundreader.userapi.service.type.ImageType;
 import lombok.Builder;

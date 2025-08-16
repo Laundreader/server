@@ -2,28 +2,30 @@ package com.laundreader.userapi.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.laundreader.common.error.exception.Exception400;
 import com.laundreader.common.util.Base64Extractor;
 import com.laundreader.external.clova.service.ClovaOcrService;
 import com.laundreader.external.clova.service.ClovaStudioService;
-import com.laundreader.external.clova.type.ImageAnalysisType;
-import com.laundreader.userapi.controller.dto.HamperDTO;
-import com.laundreader.userapi.controller.dto.ImageDTO;
+import com.laundreader.external.clova.service.response.SingleSolutionResponse;
+import com.laundreader.userapi.service.dto.HamperDTO;
+import com.laundreader.userapi.service.dto.ImageDTO;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
-import com.laundreader.userapi.controller.dto.LaundryInfoDTO;
-import com.laundreader.userapi.service.dto.response.HamperSolutionResponse;
-import com.laundreader.userapi.service.dto.response.LabelAnalysisResponse;
-import com.laundreader.userapi.service.dto.response.SingleSolutionResponse;
-import com.laundreader.userapi.service.dto.LaundrySymbolsDTO;
+import com.laundreader.userapi.service.dto.LaundryDTO;
+import com.laundreader.userapi.service.dto.LaundrySymbolDTO;
+import com.laundreader.external.clova.service.response.HamperSolutionResponse;
+import com.laundreader.external.clova.service.response.LaundryAnalysisResponse;
+import com.laundreader.userapi.service.response.laundry.HamperSolutionResponseDTO;
+import com.laundreader.userapi.service.response.laundry.LaundryAnalysisResponseDTO;
+import com.laundreader.userapi.service.response.laundry.SingleSolutionResponseDTO;
 import com.laundreader.userapi.service.type.LaundrySymbolCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,132 +36,108 @@ public class LaundryService {
     private final ClovaStudioService clovaStudioService;
     private final ObjectMapper objectMapper;
 
-
-    public LabelAnalysisResponse getLabelAnalysis(ImageDTO image) {
-        LabelAnalysisResponse response;
-
+    public LaundryAnalysisResponseDTO getLaundryAnalysis(ImageDTO labelImage, ImageDTO clothesImage) {
         // OCR 텍스트 추출
         String ocrText;
         try {
-            ocrText = clovaOcrService.extractTextFromImage(image.getFormat(), Base64Extractor.extractBase64PlainText(image.getData()));
+            ocrText = clovaOcrService.extractTextFromImage(
+                    labelImage.getFormat(),
+                    Base64Extractor.extractBase64PlainText(labelImage.getData())
+            );
         } catch (IOException e) {
-            throw new Exception500(ErrorMessage.LAUNDRY_LABEL_NOT_RECOGNIZED);
+            throw new Exception500(ErrorMessage.ORC_REQUEST_FAILED);
         }
 
-        // OCR 텍스트 + 세탁 기호 분석 -> 의류 정보 추론
-        String labelAnalysis = clovaStudioService.labelAnalysis(ocrText, image.getData(),null);
-        try {
-            log.info(labelAnalysis);
-            response = objectMapper.readValue(labelAnalysis, LabelAnalysisResponse.class);
+        // OCR 텍스트 + 의류 사진(선택) + 라벨 사진
+        LaundryAnalysisResponse clovaResponse = clovaStudioService.laundryAnalysis(
+                ocrText,
+                labelImage.getData(),
+                Optional.ofNullable(clothesImage).map(ImageDTO::getData).orElse(null)
+        );
 
-            LaundrySymbolsDTO laundrySymbols = response.getLaundrySymbols();
-            filterLaundrySymbols(laundrySymbols);
-            response.setLaundrySymbols(laundrySymbols);
+        // 유효하지 않은 심볼 코드 제거
+        LaundryAnalysisResponseDTO.LaundrySymbolsDTO filteredSymbols = filterLaundrySymbols(clovaResponse.getLaundrySymbols());
 
-            log.info(response.toString());
-
-        } catch (JsonProcessingException e) {
-            log.error("clova 라벨 텍스트 분석 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
-        }
-
-        return response;
+        return new LaundryAnalysisResponseDTO(
+                clovaResponse.getMaterials(),
+                clovaResponse.getColor(),
+                clovaResponse.getType(),
+                clovaResponse.getHasPrintOrTrims(),
+                clovaResponse.getAdditionalInfo(),
+                filteredSymbols
+        );
     }
 
-    // 이미지 없는 단일 세탁 솔루션
-    public SingleSolutionResponse getSingleSolution(LaundryInfoDTO laundryInfo){
-        SingleSolutionResponse response;
-
+    // 단일 세탁 솔루션
+    public SingleSolutionResponseDTO getSingleSolution(LaundryDTO laundry){
+        String inputData = null;
         try {
-            String inputData = objectMapper.writeValueAsString(laundryInfo);
-            log.info(inputData);
-            String solution = clovaStudioService.laundrySolutionSingle(inputData);
-            log.info(solution);
-            response = objectMapper.readValue(solution, SingleSolutionResponse.class);
+            inputData = objectMapper.writeValueAsString(laundry);
         } catch (JsonProcessingException e) {
-            log.error("clova 단일 세탁 솔루션 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            log.error("단독 세탁 솔루션 input String 변환 실패: {}", e.getMessage());
+            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
         }
-        return response;
+
+        SingleSolutionResponse clovaResponse = clovaStudioService.laundrySolutionSingle(inputData);
+
+        return new SingleSolutionResponseDTO(
+                clovaResponse.getSolutions().stream()
+                        .map(s -> new SingleSolutionResponseDTO.SolutionDTO(s.getName(), s.getContents()))
+                        .toList()
+        );
     }
 
-    // 이미지 있는 단일 세탁 솔루션
-    public SingleSolutionResponse getSingleSolution(LaundryInfoDTO laundryInfo, ImageDTO image){
-        SingleSolutionResponse response;
-
-        // 단일 세탁 솔루션 요청
+    public HamperSolutionResponseDTO getHamperSolution(HamperDTO hamper){
+        String inputData = null;
         try {
-            String inputData = objectMapper.writeValueAsString(laundryInfo);
-            log.info(inputData);
-            String solution = clovaStudioService.laundrySolutionSingle(inputData, image.getData());
-            log.info(solution);
-            response = objectMapper.readValue(solution, SingleSolutionResponse.class);
+            inputData = objectMapper.writeValueAsString(hamper);
         } catch (JsonProcessingException e) {
-            log.error("clova 단일 세탁 솔루션 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            log.error("빨래바구니 세탁 솔루션 input String 변환 실패: {}", e.getMessage());
+            throw new Exception500(ErrorMessage.INTERNAL_ERROR);
         }
-        return response;
-    }
 
-    public HamperSolutionResponse getHamperSolution(HamperDTO hamper){
-        HamperSolutionResponse response;
+        HamperSolutionResponse clovaResponse = clovaStudioService.laundrySolutionHamper(inputData);
 
-        try {
-            String inputData = objectMapper.writeValueAsString(hamper);
-            log.info(inputData);
-            String solution = clovaStudioService.laundrySolutionHamper(inputData);
-            log.info(solution);
-            response = objectMapper.readValue(solution, HamperSolutionResponse.class);
-        } catch (JsonProcessingException e) {
-            log.error("clova 빨래바구니 세탁 솔루션 json 추출 실패");
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
-        }
-        return response;
+        return new HamperSolutionResponseDTO(
+                clovaResponse.getGroups().stream()
+                        .map(g -> new HamperSolutionResponseDTO.groupDTO(
+                                g.getId(), g.getName(), g.getSolution(), g.getLaundryIds()
+                        ))
+                        .toList()
+        );
     }
 
 
-    private void filterLaundrySymbols(LaundrySymbolsDTO laundrySymbols){
+    private LaundryAnalysisResponseDTO.LaundrySymbolsDTO filterLaundrySymbols(LaundryAnalysisResponse.LaundrySymbols symbols){
+        if (symbols == null) return null;
+
         Set<String> validCodes = LaundrySymbolCode.getValidCodes();
 
-        laundrySymbols.setWaterWashing(
-                laundrySymbols.getWaterWashing().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setBleaching(
-                laundrySymbols.getBleaching().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setIroning(
-                laundrySymbols.getIroning().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setDryCleaning(
-                laundrySymbols.getDryCleaning().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setWetCleaning(
-                laundrySymbols.getWetCleaning().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setWringing(
-                laundrySymbols.getWringing().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setNaturalDrying(
-                laundrySymbols.getNaturalDrying().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
-        laundrySymbols.setTumbleDrying(
-                laundrySymbols.getTumbleDrying().stream()
-                        .filter(detail -> validCodes.contains(detail.getCode()))
-                        .collect(Collectors.toList())
-        );
+        // 외부 DTO → 내부 DTO 복사 및 필터링
+        LaundryAnalysisResponseDTO.LaundrySymbolsDTO dto = new LaundryAnalysisResponseDTO.LaundrySymbolsDTO();
+        dto.setWaterWashing(filterList(symbols.getWaterWashing(), validCodes));
+        dto.setBleaching(filterList(symbols.getBleaching(), validCodes));
+        dto.setIroning(filterList(symbols.getIroning(), validCodes));
+        dto.setDryCleaning(filterList(symbols.getDryCleaning(), validCodes));
+        dto.setWetCleaning(filterList(symbols.getWetCleaning(), validCodes));
+        dto.setWringing(filterList(symbols.getWringing(), validCodes));
+        dto.setNaturalDrying(filterList(symbols.getNaturalDrying(), validCodes));
+        dto.setTumbleDrying(filterList(symbols.getTumbleDrying(), validCodes));
+
+        return dto;
+    }
+
+    private List<LaundrySymbolDTO> filterList(
+            List<LaundryAnalysisResponse.Symbol> list, Set<String> validCodes) {
+
+        return list == null ? List.of() :
+                list.stream()
+                        .filter(d -> validCodes.contains(d.getCode()))
+                        .map(d -> LaundrySymbolDTO.builder()
+                                .code(d.getCode())
+                                .description(d.getDescription())
+                                .build()
+                        )
+                        .toList();
     }
 }

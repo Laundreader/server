@@ -1,4 +1,4 @@
-package com.laundreader.external.clova;
+package com.laundreader.external.clova.request;
 
 public interface ClovaStudioRequestBuilder<T> {
     ClovaStudioRequestBuilder<T> addSystemMessage(String promptFilePath);

@@ -2,8 +2,8 @@ package com.laundreader.external.clova;
 
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
-import com.laundreader.external.clova.dto.ClovaOcrRequest;
-import com.laundreader.external.clova.dto.ClovaOcrResponse;
+import com.laundreader.external.clova.request.ClovaOcrRequest;
+import com.laundreader.external.clova.response.ClovaOcrResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +14,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor

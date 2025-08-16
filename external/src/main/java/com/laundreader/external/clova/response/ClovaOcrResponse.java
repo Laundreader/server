@@ -1,9 +1,8 @@
-package com.laundreader.external.clova.dto;
+package com.laundreader.external.clova.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 

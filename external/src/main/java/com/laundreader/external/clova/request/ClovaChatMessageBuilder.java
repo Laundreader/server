@@ -1,7 +1,6 @@
-package com.laundreader.external.clova;
+package com.laundreader.external.clova.request;
 
-import com.laundreader.external.clova.dto.ClovaChatRequest;
-import com.laundreader.external.clova.dto.ClovaChatRequest.Message;
+import com.laundreader.external.clova.request.ClovaChatRequest.Message;
 import com.laundreader.external.clova.type.Role;
 
 import java.util.ArrayList;
@@ -28,6 +27,10 @@ public class ClovaChatMessageBuilder implements ClovaStudioRequestBuilder<ClovaC
 
     @Override
     public ClovaChatMessageBuilder addUserMessage(String text, String base64Image) {
+        if (base64Image == null) {
+            return addUserMessage(text);
+        }
+
         List<Message.Content> contents = new ArrayList<>();
 
         // 텍스트

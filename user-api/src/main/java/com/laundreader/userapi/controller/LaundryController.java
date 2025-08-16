@@ -1,13 +1,14 @@
 package com.laundreader.userapi.controller;
 
 import com.laundreader.common.util.ApiUtils;
-import com.laundreader.userapi.controller.dto.request.HamperSolutionRequest;
-import com.laundreader.userapi.controller.dto.request.LabelAnalysisRequest;
-import com.laundreader.userapi.controller.dto.request.SingleSolutionRequest;
+import com.laundreader.userapi.service.dto.ImageDTO;
+import com.laundreader.userapi.controller.request.laundry.HamperSolutionRequest;
+import com.laundreader.userapi.controller.request.laundry.LaundryAnalysisRequest;
+import com.laundreader.userapi.controller.request.laundry.SingleSolutionRequest;
 import com.laundreader.userapi.service.LaundryService;
-import com.laundreader.userapi.service.dto.response.HamperSolutionResponse;
-import com.laundreader.userapi.service.dto.response.LabelAnalysisResponse;
-import com.laundreader.userapi.service.dto.response.SingleSolutionResponse;
+import com.laundreader.userapi.service.response.laundry.HamperSolutionResponseDTO;
+import com.laundreader.userapi.service.response.laundry.LaundryAnalysisResponseDTO;
+import com.laundreader.userapi.service.response.laundry.SingleSolutionResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,41 +20,51 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+import java.util.Optional;
+
 
 @RestController
-@RequestMapping("/user-api/")
+@RequestMapping("/user-api/laundry/")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
 public class LaundryController {
     private final LaundryService laundryService;
 
-    @PostMapping("/label-analysis")
-    public ResponseEntity<ApiUtils.ApiResult<LabelAnalysisResponse>> labelAnalysis(
-         @Valid @RequestBody LabelAnalysisRequest request
+    @PostMapping("/analysis")
+    public ResponseEntity<ApiUtils.ApiResult<Map<String, LaundryAnalysisResponseDTO>>> laundryAnalysis(
+         @Valid @RequestBody LaundryAnalysisRequest request
     ) {
-        LabelAnalysisResponse response = laundryService.getLabelAnalysis(request.toImageDTO());
-        return new ResponseEntity<>(ApiUtils.success(HttpStatus.OK, response), HttpStatus.OK);
+        ImageDTO clothesImage = Optional.ofNullable(request.getClothesImage())
+                .map(request::toImageDTO)
+                .orElse(null);
+
+        LaundryAnalysisResponseDTO response = laundryService.getLaundryAnalysis(
+                request.toImageDTO(request.getLabelImage()),
+                clothesImage
+        );
+
+        // "laundry": { ... } 로 묶어서 보냄
+        Map<String, LaundryAnalysisResponseDTO> laundry = Map.of("laundry", response);
+        return new ResponseEntity<>(ApiUtils.success(laundry), HttpStatus.OK);
     }
 
-    @PostMapping("/laundry-solution/single")
-    public ResponseEntity<ApiUtils.ApiResult<SingleSolutionResponse>> singleSolution(
+    @PostMapping("/solution/single")
+    public ResponseEntity<ApiUtils.ApiResult<Map<String, SingleSolutionResponseDTO>>> singleSolution(
             @Valid @RequestBody SingleSolutionRequest request
     ) {
-        SingleSolutionResponse response;
-
-        response = (request.getImage() == null)
-                ? laundryService.getSingleSolution(request.toLaundryInfoDTO())
-                : laundryService.getSingleSolution(request.toLaundryInfoDTO(), request.toImageDTO());
-
-        return new ResponseEntity<>(ApiUtils.success(HttpStatus.OK, response), HttpStatus.OK);
+        SingleSolutionResponseDTO response = laundryService.getSingleSolution(request.toLaundryDTO());
+        // "laundry": { ... } 로 묶어서 보냄
+        Map<String, SingleSolutionResponseDTO> laundry = Map.of("laundry", response);
+        return new ResponseEntity<>(ApiUtils.success(laundry), HttpStatus.OK);
     }
 
-    @PostMapping("/laundry-solution/hamper")
-    public ResponseEntity<ApiUtils.ApiResult<HamperSolutionResponse>> hamperSolution(
+    @PostMapping("/solution/hamper")
+    public ResponseEntity<ApiUtils.ApiResult<HamperSolutionResponseDTO>> hamperSolution(
             @Valid @RequestBody HamperSolutionRequest request
     ) {
-        HamperSolutionResponse response = laundryService.getHamperSolution(request.toHamperDTO());
-        return new ResponseEntity<>(ApiUtils.success(HttpStatus.OK, response), HttpStatus.OK);
+        HamperSolutionResponseDTO response = laundryService.getHamperSolution(request.toHamperDTO());
+        return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
     }
 }

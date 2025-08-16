@@ -1,13 +1,12 @@
-package com.laundreader.userapi.service.dto.response.image;
+package com.laundreader.userapi.service.response.image;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 
 @Getter
 @AllArgsConstructor
-public class ImageValidationResponse {
+public class ImageValidationResponseDTO {
     private final Image image;
 
     @Getter
@@ -16,7 +15,7 @@ public class ImageValidationResponse {
         private final boolean isValid;
     }
 
-    public ImageValidationResponse(boolean isValid) {
+    public ImageValidationResponseDTO(boolean isValid) {
         this.image = new Image(isValid);
     }
 }

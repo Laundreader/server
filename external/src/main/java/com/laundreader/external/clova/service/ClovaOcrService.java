@@ -1,8 +1,8 @@
 package com.laundreader.external.clova.service;
 
 import com.laundreader.external.clova.ClovaOcrClient;
-import com.laundreader.external.clova.dto.ClovaOcrRequest;
-import com.laundreader.external.clova.dto.ClovaOcrResponse;
+import com.laundreader.external.clova.request.ClovaOcrRequest;
+import com.laundreader.external.clova.response.ClovaOcrResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

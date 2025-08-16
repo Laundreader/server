@@ -1,10 +1,11 @@
 package com.laundreader.external.clova;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
-import com.laundreader.external.clova.dto.*;
+import com.laundreader.external.clova.response.*;
+import com.laundreader.external.clova.request.ClovaChatRequest;
+import com.laundreader.external.clova.request.ClovaThinkingRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,10 +34,23 @@ public class ClovaStudioClient {
     // HCX-005 호출 (ClovaChatRequest 전용)
     public ClovaChatResponse callChat(ClovaChatRequest request) {
         ClovaChatResponse response = callModel(HCX_005, request, ClovaChatResponse.class);
+
         String statusCode = response.getStatus().getCode();
         if (!statusCode.equals("20000") && !statusCode.equals("20400")) {
-            log.error(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            String statusMessage = response.getStatus().getMessage();
+
+            log.error("{}: code={}, message={}",
+                    ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED,
+                    statusCode,
+                    statusMessage
+            );
+            throw new Exception500(
+                    String.format("%s: code=%s, message=%s",
+                            ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED,
+                            statusCode,
+                            statusMessage
+                    )
+            );
         }
         return response;
     }
@@ -46,8 +60,20 @@ public class ClovaStudioClient {
         ClovaThinkingResponse response =  callModel(HCX_007, request, ClovaThinkingResponse.class);
         String statusCode = response.getStatus().getCode();
         if (!statusCode.equals("20000") && !statusCode.equals("20400")) {
-            log.error(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
-            throw new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED);
+            String statusMessage = response.getStatus().getMessage();
+
+            log.error("{}: code={}, message={}",
+                    ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED,
+                    statusCode,
+                    statusMessage
+            );
+            throw new Exception500(
+                    String.format("%s: code=%s, message=%s",
+                            ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED,
+                            statusCode,
+                            statusMessage
+                    )
+            );
         }
         return response;
     }
@@ -63,14 +89,8 @@ public class ClovaStudioClient {
                 .header("X-NCP-CLOVASTUDIO-REQUEST-ID", UUID.randomUUID().toString())
                 .bodyValue(requestBody)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse -> {
-                    log.error("ClovaStudio API request failed with status {}", clientResponse.statusCode());
-                    return clientResponse.bodyToMono(String.class)
-                            .map(body -> new Exception500(ErrorMessage.CLOVA_STUDIO_REQUEST_FAILED));
-                })
                 .bodyToMono(String.class)
                 .block(); // 동기 호출
-
         try {
             return objectMapper.readValue(responseBody, responseType);
         } catch (Exception e) {

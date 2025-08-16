@@ -18,8 +18,8 @@ public class Exception400 extends RuntimeException {
         this.value = value;
     }
 
-    public ApiUtils.ApiResult<?> body() {
-        return ApiUtils.error(status(), getMessage());
+    public ApiUtils.ApiError<?> body() {
+        return ApiUtils.error(getMessage());
     }
 
     public HttpStatus status() {

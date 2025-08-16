@@ -1,4 +1,4 @@
-package com.laundreader.external.clova.dto;
+package com.laundreader.external.clova.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;

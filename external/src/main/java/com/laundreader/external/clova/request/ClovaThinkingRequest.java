@@ -1,11 +1,10 @@
-package com.laundreader.external.clova.dto;
+package com.laundreader.external.clova.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data

@@ -1,4 +1,4 @@
-package com.laundreader.external.clova.dto;
+package com.laundreader.external.clova.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -6,17 +6,22 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
 public class ClovaChatRequest {
+    // 생성 토큰 후보군을 누적 확률을 기반으로 샘플링 (1.0이면 전체 사용)
+    // 확률이 높은 순서대로 누적 합이 P(%) 이상이 될 때까지 후보군을 채우고, 그 안에서 샘플링
     private double topP = 0.80;
+    // 생성 토큰 후보군에서 확률이 높은 K개를 후보로 지정하여 샘플링 (높을 수록 다양)
     private int topK = 0;
+    // 응답 최대 토큰 수
     private int maxTokens = 4096;
+    // 생성 토큰에 대한 다양성 정도(설정값이 높을수록 다양한 문장 생성)
     private double temperature = 0.50;
+    // 같은 토큰을 생성하는 것에 대한 패널티 정도(설정값이 높을수록 같은 결괏값을 반복 생성할 확률 감소)
     private double repetitionPenalty = 1.1;
     private List<String> stop = new ArrayList<>();
     private int seed = 0;

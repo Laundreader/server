@@ -1,7 +1,6 @@
-package com.laundreader.external.clova;
+package com.laundreader.external.clova.request;
 
-import com.laundreader.external.clova.dto.ClovaThinkingRequest;
-import com.laundreader.external.clova.dto.ClovaThinkingRequest.Message;
+import com.laundreader.external.clova.request.ClovaThinkingRequest.Message;
 import com.laundreader.external.clova.type.Role;
 
 import java.util.ArrayList;

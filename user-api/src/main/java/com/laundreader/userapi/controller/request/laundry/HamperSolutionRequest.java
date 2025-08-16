@@ -1,6 +1,7 @@
-package com.laundreader.userapi.controller.dto.request;
+package com.laundreader.userapi.controller.request.laundry;
 
-import com.laundreader.userapi.controller.dto.HamperDTO;
+import com.laundreader.userapi.service.dto.HamperDTO;
+import com.laundreader.userapi.service.dto.LaundrySymbolDTO;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
@@ -9,10 +10,10 @@ import java.util.List;
 @Getter
 public class HamperSolutionRequest {
     @NotNull(message = "값이 null 일 수 없습니다.")
-    List<laundryDTO> laundry;
+    List<laundry> laundries;
 
     @Getter
-    public static class laundryDTO {
+    public static class laundry {
         @NotNull(message = "값이 null 일 수 없습니다.")
         private int id;
         private List<String> materials;
@@ -40,8 +41,8 @@ public class HamperSolutionRequest {
     public HamperDTO toHamperDTO() {
         return HamperDTO.builder()
                 .laundry(
-                        this.laundry.stream()
-                                .map(l -> HamperDTO.laundryDTO.builder()
+                        laundries.stream()
+                                .map(l -> HamperDTO.LaundryDTO.builder()
                                         .id(l.getId())
                                         .materials(l.getMaterials())
                                         .color(l.getColor())
@@ -51,7 +52,7 @@ public class HamperSolutionRequest {
                                         .laundrySymbols(
                                                 l.getLaundrySymbols() != null
                                                         ? l.getLaundrySymbols().stream()
-                                                        .map(s -> HamperDTO.laundryDTO.LaundrySymbol.builder()
+                                                        .map(s -> LaundrySymbolDTO.builder()
                                                                 .code(s.getCode())
                                                                 .description(s.getDescription())
                                                                 .build())
@@ -60,7 +61,7 @@ public class HamperSolutionRequest {
                                         ).solutions(
                                                 l.getSolutions() != null
                                                         ? l.getSolutions().stream()
-                                                        .map(s -> HamperDTO.laundryDTO.Solution.builder()
+                                                        .map(s -> HamperDTO.SolutionDTO.builder()
                                                                 .name(s.getName())
                                                                 .contents(s.getContents())
                                                                 .build())

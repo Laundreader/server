@@ -1,7 +1,6 @@
 package com.laundreader.userapi.controller.request.image;
 
-import com.laundreader.userapi.controller.dto.ImageDTO;
-import com.laundreader.userapi.controller.request.LabelAnalysisRequest;
+import com.laundreader.userapi.service.dto.ImageDTO;
 import com.laundreader.userapi.service.type.ImageType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

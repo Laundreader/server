@@ -3,8 +3,7 @@ package com.laundreader.userapi.controller;
 import com.laundreader.common.util.ApiUtils;
 import com.laundreader.userapi.controller.request.image.ImageValidationRequest;
 import com.laundreader.userapi.service.ImageService;
-import com.laundreader.userapi.service.dto.response.LabelAnalysisResponse;
-import com.laundreader.userapi.service.dto.response.image.ImageValidationResponse;
+import com.laundreader.userapi.service.response.image.ImageValidationResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +25,10 @@ public class ImageController {
     private final ImageService imageService;
 
     @PostMapping("/validation")
-    public ResponseEntity<ApiUtils.ApiResult<ImageValidationResponse>> imageValidation(
+    public ResponseEntity<ApiUtils.ApiResult<ImageValidationResponseDTO>> imageValidation(
             @Valid @RequestBody ImageValidationRequest request
     ) {
-        ImageValidationResponse response = imageService.validImageType(request.toImageDTO());
-        return new ResponseEntity<>(ApiUtils.success(HttpStatus.OK, response), HttpStatus.OK);
+        ImageValidationResponseDTO response = imageService.validImageType(request.toImageDTO());
+        return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
     }
 }

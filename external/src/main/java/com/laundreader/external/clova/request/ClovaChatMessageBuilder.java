@@ -1,49 +1,60 @@
 package com.laundreader.external.clova.request;
 
-import com.laundreader.external.clova.request.ClovaChatRequest.Message;
-import com.laundreader.external.clova.type.Role;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClovaChatMessageBuilder implements ClovaStudioRequestBuilder<ClovaChatRequest>  {
-    private final List<Message> messages = new ArrayList<>();
+import com.laundreader.external.clova.request.ClovaChatRequest.Message;
+import com.laundreader.external.clova.type.Role;
 
-    @Override
-    public ClovaChatMessageBuilder addSystemMessage(String text) {
-        Message.TextContent systemContent = new Message.TextContent(text);
-        Message systemMessage = new Message(Role.SYSTEM.getValue(), List.of(systemContent));
-        messages.add(systemMessage);
-        return this;
-    }
+public class ClovaChatMessageBuilder implements ClovaStudioRequestBuilder<ClovaChatRequest> {
+	private final List<Message> messages = new ArrayList<>();
 
-    @Override
-    public ClovaChatMessageBuilder addUserMessage(String text) {
-        Message.TextContent userContent = new Message.TextContent(text);
-        Message userMessage = new Message(Role.USER.getValue(), List.of(userContent));
-        messages.add(userMessage);
-        return this;
-    }
+	@Override
+	public ClovaChatMessageBuilder addSystemMessage(String text) {
+		Message.TextContent systemContent = new Message.TextContent(text);
+		Message systemMessage = new Message(Role.SYSTEM.getValue(), List.of(systemContent));
+		messages.add(systemMessage);
+		return this;
+	}
 
-    @Override
-    public ClovaChatMessageBuilder addUserMessage(String text, String base64Image) {
-        if (base64Image == null) {
-            return addUserMessage(text);
-        }
+	@Override
+	public ClovaChatMessageBuilder addUserMessage(String text) {
+		Message.TextContent userContent = new Message.TextContent(text);
+		Message userMessage = new Message(Role.USER.getValue(), List.of(userContent));
+		messages.add(userMessage);
+		return this;
+	}
 
-        List<Message.Content> contents = new ArrayList<>();
+	@Override
+	public ClovaChatMessageBuilder addUserMessage(String text, String base64Image) {
+		if (base64Image == null) {
+			return addUserMessage(text);
+		}
 
-        // 텍스트
-        contents.add(new Message.TextContent(text));
+		List<Message.Content> contents = new ArrayList<>();
 
-        // 이미지
-        Message.DataUriContent.DataUri dataUri = new Message.DataUriContent.DataUri(base64Image);
-        contents.add(new Message.DataUriContent(dataUri));
+		// 텍스트
+		contents.add(new Message.TextContent(text));
 
-        Message userMessage = new Message(Role.USER.getValue(), contents);
-        messages.add(userMessage);
-        return this;
-    }
+		// 이미지
+		Message.DataUriContent.DataUri dataUri = new Message.DataUriContent.DataUri(base64Image);
+		contents.add(new Message.DataUriContent(dataUri));
 
-    @Override public ClovaChatRequest build() { return new ClovaChatRequest(messages); }
+		Message userMessage = new Message(Role.USER.getValue(), contents);
+		messages.add(userMessage);
+		return this;
+	}
+
+	@Override
+	public ClovaChatMessageBuilder addaAsistantMessage(String text) {
+		Message.TextContent userContent = new Message.TextContent(text);
+		Message assistantMessage = new Message(Role.ASSISTANT.getValue(), List.of(userContent));
+		messages.add(assistantMessage);
+		return this;
+	}
+
+	@Override
+	public ClovaChatRequest build() {
+		return new ClovaChatRequest(messages);
+	}
 }

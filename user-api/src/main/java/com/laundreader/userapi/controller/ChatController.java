@@ -1,15 +1,21 @@
 package com.laundreader.userapi.controller;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.laundreader.common.util.ApiUtils;
+import com.laundreader.common.util.SessionIdGenerator;
 import com.laundreader.userapi.controller.request.chat.ChatStreamRequest;
 import com.laundreader.userapi.service.ChatService;
 
@@ -24,7 +30,12 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class ChatController {
 	private final ChatService chatService;
-	private final RedisTemplate<String, String> redisTemplate;
+
+	@PostMapping("/stream")
+	public ResponseEntity<ApiUtils.ApiResult<Object>> getSession() {
+		String sessionId = SessionIdGenerator.generateSessionId(16);
+		return new ResponseEntity<>(ApiUtils.success(Map.of("sessionId", sessionId)), HttpStatus.OK);
+	}
 
 	@PostMapping(value = "/stream/{sessionId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public Flux<ServerSentEvent<String>> streamChat(
@@ -34,15 +45,9 @@ public class ChatController {
 		return chatService.streamChat(sessionId, request.getMessage());
 	}
 
-	// @DeleteMapping("/{sessionId}")
-	// public ResponseEntity<ApiUtils.ApiResult<Object>> endChat(@PathVariable String sessionId) {
-	// 	String key = "chat:" + sessionId;
-	// 	Boolean deleted = redisTemplate.delete(key);
-	//
-	// 	if (Boolean.TRUE.equals(deleted)) {
-	// 		return new ResponseEntity<>(ApiUtils.success(null), HttpStatus.OK);
-	// 	} else {
-	// 		throw new Exception404("세션을 찾을 수 없습니다 sessionId: " + sessionId);
-	// 	}
-	// }
+	@DeleteMapping("/{sessionId}")
+	public ResponseEntity<ApiUtils.ApiResult<Object>> endChat(@PathVariable String sessionId) {
+		chatService.deleteSesstion(sessionId);
+		return new ResponseEntity<>(ApiUtils.success(null), HttpStatus.OK);
+	}
 }

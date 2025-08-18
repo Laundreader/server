@@ -46,7 +46,7 @@ public class ClovaChatMessageBuilder implements ClovaStudioRequestBuilder<ClovaC
 	}
 
 	@Override
-	public ClovaChatMessageBuilder addaAsistantMessage(String text) {
+	public ClovaChatMessageBuilder addAsistantMessage(String text) {
 		Message.TextContent userContent = new Message.TextContent(text);
 		Message assistantMessage = new Message(Role.ASSISTANT.getValue(), List.of(userContent));
 		messages.add(assistantMessage);

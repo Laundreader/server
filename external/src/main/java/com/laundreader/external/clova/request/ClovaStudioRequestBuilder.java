@@ -7,7 +7,7 @@ public interface ClovaStudioRequestBuilder<T> {
 
 	ClovaStudioRequestBuilder<T> addUserMessage(String text, String base64Image);
 
-	ClovaStudioRequestBuilder<T> addaAsistantMessage(String text);
+	ClovaStudioRequestBuilder<T> addAsistantMessage(String text);
 
 	T build();
 }

@@ -5,12 +5,11 @@ pipeline {
         jdk 'jdk-21'
     }
     environment {
+        WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
         IMAGE_NAME = 'user-api'
         IMAGE_TAG = "v${BUILD_NUMBER}"
-        BLUE_CONTAINER = "user-api-blue"
-        GREEN_CONTAINER = "user-api-green"
-        WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
-        DOCKER_COMPOSE_PATH = "/secure-submodule/docker/docker-compose.yml"
+        BLUE_COMPOSE = "/secure-submodule/docker/docker-compose.blue.yml"
+        GREEN_COMPOSE = "/secure-submodule/docker/docker-compose.green.yml"
         USER_API_DOCKERFILE_PATH = "/secure-submodule/docker/user-api.Dockerfile"
         HOST_IP = "49.50.133.246"
         NGINX_UPSTREAM_CONF = "/etc/nginx/conf.d/user-api-upstream.conf"
@@ -52,56 +51,53 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    //  무중단 설정 전 GREEN_CONTAINER를 8080으로 띄우고 있었음. 그에 맞게 매핑
-                    def containerPortMap = [
-                        (GREEN_CONTAINER): 8080,
-                        (BLUE_CONTAINER) : 8081
-                    ]
-                    // 현재 실행 중인 컨테이너 확인 
+                    // 현재 활성 컨테이너 확인 (Blue 또는 Green)
                     def active = sh(
-                        script: "docker ps --filter 'name=${GREEN_CONTAINER}' --filter 'name=${BLUE_CONTAINER}' --format '{{.Names}}' | head -n 1",
+                        script: "docker ps --filter 'name=user-api-blue' --filter 'name=user-api-green' --format '{{.Names}}' | head -n 1",
                         returnStdout: true
                     ).trim()
 
-                     // 현재가 없으면 BLUE → 첫 배포
-                    def next = (!active || active == BLUE_CONTAINER) ? GREEN_CONTAINER : BLUE_CONTAINER
+                    // 다음 배포 대상 결정
+                    def nextCompose
+                    def nextService
+                    if (!active || active == 'user-api-green') {
+                        nextCompose = BLUE_COMPOSE
+                        nextService = 'user-api-blue'
+                    } else {
+                        nextCompose = GREEN_COMPOSE
+                        nextService = 'user-api-green'
+                    }
 
-                    // 새 컨테이너 포트 결정
-                    def active_port = active ? containerPortMap[active] : null
-                    def next_port = containerPortMap[next]
+                    echo "▶️ Active container: ${active ?: 'None'}"
+                    echo "🔄 Next deploy: ${nextService} using ${nextCompose}"
 
-                    echo "▶️ Active container: ${active ?: 'None'} ${active_port ? "(port ${active_port})" : ''}"
-                    echo "🔄 Next container: ${next} (port ${next_port})"
+                    // 이전 컨테이너 제거
+                    sh "docker-compose -f ${nextCompose} down || true"
 
                     // 새 컨테이너 시작
-                    sh "docker rm -f ${next} || true"
-                    sh "docker run -d --name ${next} -p ${next_port}:8080 ${IMAGE_NAME}:latest"
+                    sh "docker-compose -f ${nextCompose} up -d --build"
 
-                    // 컨테이너 정상 구동 체크
+                    // 새 컨테이너 정상 구동 확인
+                    def nextPort = nextService == 'user-api-blue' ? 8080 : 8081
                     sh """
-                        for i in {1..10}; do
-                            curl -fs http://localhost:${next_port}/health && break
+                        for i in {1..5}; do
+                            curl -fs http://localhost:${nextPort}/health && break
                             echo 'Waiting for container...'
                             sleep 3
                         done || { echo '❌ Container failed to start'; exit 1; }
                     """
 
-                    // Nginx upstream 갱신 및 reload
+                    // Nginx upstream 갱신
                     sshagent (credentials: ['jenkins-ssh-key']) {
                         sh """
-                        ssh -o StrictHostKeyChecking=no root@HOST_IP \\
-                            "echo 'upstream user_api_upstream { server localhost:${next_port}; }' > ${NGINX_UPSTREAM_CONF} &&
-                            nginx -t &&
-                            systemctl reload nginx"
+                        ssh -o StrictHostKeyChecking=no root@${HOST_IP} \\
+                            "echo 'upstream user_api_upstream { server localhost:${nextPort}; }' > ${NGINX_UPSTREAM_CONF} &&
+                             nginx -t &&
+                             systemctl reload nginx"
                         """
                     }
 
-                    if(active) {
-                        echo "🛑 Stopping old container: ${active}"
-                        sh "docker rm -f ${active} || true"
-                    }
-
-                    echo "✅ Traffic switched to ${next} (port ${next_port}) via Nginx"
+                    echo "✅ Traffic switched to ${nextService} (port ${nextPort}) via Nginx"
                 }
             }
         }

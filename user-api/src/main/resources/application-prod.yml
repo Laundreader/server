@@ -1,8 +1,7 @@
 spring:
-  autoconfigure:
-    exclude: //DB 나중에 붙임
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+  redis:
+    host: redis
+    port: 6379
   docker:
     compose:
       enabled: false

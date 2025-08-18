@@ -1,5 +1,7 @@
 package com.laundreader.external.clova;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -10,13 +12,13 @@ import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.external.clova.request.ClovaChatRequest;
 import com.laundreader.external.clova.request.ClovaThinkingRequest;
 import com.laundreader.external.clova.response.ClovaChatResponse;
+import com.laundreader.external.clova.response.ClovaChatTokenizeResponse;
 import com.laundreader.external.clova.response.ClovaThinkingResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -36,12 +38,14 @@ public class ClovaStudioClient {
 
 	@Value("${clova.studio.secretKey}")
 	private String secretKey;    // Authorization Key
-	@Value("${clova.studio.invokeUrl}")
-	private String invokeUrl;    // invokeURL from API Gateway
+	@Value("${clova.studio.chatCompletionsUrl}")
+	private String chatCompletionsUrl;    // Chat-Completions 요청 URL
+	@Value("${clova.studio.chatTokenizeUrl}")
+	private String chatTokenizeUrl;    // Chat-Tokenize 요청 URL
 
 	// HCX-005 호출 (ClovaChatRequest 전용)
-	public ClovaChatResponse callChat(ClovaChatRequest request) {
-		ClovaChatResponse response = callModel(HCX_005, request, ClovaChatResponse.class);
+	public ClovaChatResponse callChatHCX005(ClovaChatRequest request) {
+		ClovaChatResponse response = callModel(chatCompletionsUrl + HCX_005, request, ClovaChatResponse.class);
 
 		String statusCode = response.getStatus().getCode();
 		if (!statusCode.equals("20000") && !statusCode.equals("20400")) {
@@ -64,8 +68,8 @@ public class ClovaStudioClient {
 	}
 
 	// HCX-007 호출 (ClovaThinkingRequest 전용)
-	public ClovaThinkingResponse callThinking(ClovaThinkingRequest request) {
-		ClovaThinkingResponse response = callModel(HCX_007, request, ClovaThinkingResponse.class);
+	public ClovaThinkingResponse callThinkingHCX007(ClovaThinkingRequest request) {
+		ClovaThinkingResponse response = callModel(chatCompletionsUrl + HCX_007, request, ClovaThinkingResponse.class);
 		String statusCode = response.getStatus().getCode();
 		if (!statusCode.equals("20000") && !statusCode.equals("20400")) {
 			String statusMessage = response.getStatus().getMessage();
@@ -86,9 +90,16 @@ public class ClovaStudioClient {
 		return response;
 	}
 
-	private <T, R> R callModel(String modelId, T requestBody, Class<R> responseType) {
-		String url = invokeUrl + modelId;
+	// HCX-DASH-002 호출 (챗봇 스트리밍)
+	public Flux<ServerSentEvent<String>> callChatStreamDASH002(ClovaChatRequest request) {
+		return callModelStream(chatCompletionsUrl + HCX_DASH_002, request);
+	}
 
+	public ClovaChatTokenizeResponse callChatTokenize(String modelName, List<ClovaChatRequest.Message> messages) {
+		return callModel(chatTokenizeUrl + modelName, Map.of("messages", messages), ClovaChatTokenizeResponse.class);
+	}
+
+	private <T, R> R callModel(String url, T requestBody, Class<R> responseType) {
 		WebClient webClient = webClientBuilder.build();
 		String responseBody = webClient.post()
 			.uri(url)
@@ -106,9 +117,7 @@ public class ClovaStudioClient {
 		}
 	}
 
-	public <T> Flux<String> callModelStream(String modelId, T requestBody) {
-		String url = invokeUrl + modelId;
-
+	public <T> Flux<ServerSentEvent<String>> callModelStream(String url, T requestBody) {
 		WebClient webClient = webClientBuilder.build();
 
 		return webClient.post()
@@ -120,25 +129,6 @@ public class ClovaStudioClient {
 			.accept(MediaType.TEXT_EVENT_STREAM) // SSE 형식
 			.retrieve()
 			.bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
-			})
-			//.doOnNext(event -> log.info("Received SSE event: data={}", event.data()))
-			.filter(event -> "token".equals(event.event()))
-			.map(ServerSentEvent::data)
-			.map(this::extractContent); // 응답에서 텍스트만 추출
-	}
-
-	/** 스트리밍 응답 JSON에서 실제 content만 뽑는 헬퍼 */
-	private String extractContent(String rawJson) {
-		try {
-			JsonNode node = objectMapper.readTree(rawJson);
-			JsonNode contentNode = node.at("/message/content");
-			if (contentNode.isMissingNode()) {
-				return "";
-			}
-			return contentNode.asText();
-		} catch (Exception e) {
-			log.warn("Failed to parse streaming chunk: {}", rawJson);
-			return "";
-		}
+			});
 	}
 }

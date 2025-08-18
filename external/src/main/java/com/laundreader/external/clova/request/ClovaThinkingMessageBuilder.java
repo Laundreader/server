@@ -32,7 +32,7 @@ public class ClovaThinkingMessageBuilder implements ClovaStudioRequestBuilder<Cl
 	}
 
 	@Override
-	public ClovaThinkingMessageBuilder addaAsistantMessage(String text) {
+	public ClovaThinkingMessageBuilder addAsistantMessage(String text) {
 		Message.Content userContent = new Message.Content(text);
 		Message assistantMessage = new Message(Role.ASSISTANT.getValue(), List.of(userContent));
 		messages.add(assistantMessage);

@@ -3,6 +3,7 @@ package com.laundreader.external.clova.service;
 import java.util.List;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,10 +19,12 @@ import com.laundreader.external.clova.request.ClovaChatRequest;
 import com.laundreader.external.clova.request.ClovaThinkingMessageBuilder;
 import com.laundreader.external.clova.request.ClovaThinkingRequest;
 import com.laundreader.external.clova.response.ClovaChatResponse;
+import com.laundreader.external.clova.response.ClovaChatTokenizeResponse;
 import com.laundreader.external.clova.response.ClovaThinkingResponse;
 import com.laundreader.external.clova.service.response.HamperSolutionResponse;
 import com.laundreader.external.clova.service.response.LaundryAnalysisResponse;
 import com.laundreader.external.clova.service.response.SingleSolutionResponse;
+import com.laundreader.external.clova.service.response.SummaryResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +49,7 @@ public class ClovaStudioService {
 			.build();
 
 		// Response
-		ClovaChatResponse clovaChatResponse = client.callChat(request);
+		ClovaChatResponse clovaChatResponse = client.callChatHCX005(request);
 		log.info("clova 이미지 검증 Response: " + clovaChatResponse.getResult().getMessage().getContent());
 		return TrueFalseExtractor.extractFirstTrueOrFalse(clovaChatResponse.getResult().getMessage().getContent());
 	}
@@ -66,7 +69,7 @@ public class ClovaStudioService {
 		//        request.setTopK(0);
 
 		// Response
-		ClovaChatResponse clovaChatResponse = client.callChat(request);
+		ClovaChatResponse clovaChatResponse = client.callChatHCX005(request);
 		log.info("clova 세탁물 분석 Response: " + clovaChatResponse.getResult().getMessage().getContent());
 
 		// json 형식의 답변이 왔는지 검증 후 object로 변환하여 return
@@ -91,7 +94,7 @@ public class ClovaStudioService {
 			.build();
 
 		// Response
-		ClovaChatResponse clovaChatResponse = client.callChat(request);
+		ClovaChatResponse clovaChatResponse = client.callChatHCX005(request);
 		log.info("clova 단일 세탁 솔루션 Response: " + clovaChatResponse.getResult().getMessage().getContent());
 
 		// json 형식의 답변이 왔는지 검증 후 object로 변환하여 return
@@ -116,7 +119,7 @@ public class ClovaStudioService {
 			.build();
 
 		// Response
-		ClovaThinkingResponse clovaThinkingResponse = client.callThinking(clovaThinkingRequest);
+		ClovaThinkingResponse clovaThinkingResponse = client.callThinkingHCX007(clovaThinkingRequest);
 		log.info("clova 빨래 바구니 세탁 솔루션 Response: " + clovaThinkingResponse.getResult().getMessage().getContent());
 
 		// json 형식의 답변이 왔는지 검증 후 object로 변환하여 return
@@ -134,35 +137,64 @@ public class ClovaStudioService {
 	 * 챗봇 스트리밍
 	 * HCX-DASH-002 모델 스트리밍 호출
 	 */
-	public Flux<String> laundryChatbot(List<String> previousConversation, String newUserMessage) {
+	public Flux<ServerSentEvent<String>> laundryChatbot(List<String> existingConversation, String newUserMessage) {
 		ClovaChatMessageBuilder builder = new ClovaChatMessageBuilder();
 
 		// 시스템 프롬프트 추가
 		String systemPrompt = PromptUtils.loadPrompt("prompt/system/chatbot-prompt.md");
 		builder.addSystemMessage(systemPrompt);
 
-		// 이전 대화를 builder로 재구성
-		for (String saved : previousConversation) {
-			if (saved.startsWith("USER: ")) {
-				builder.addUserMessage(saved.substring(6));
-			} else if (saved.startsWith("ASSISTANT: ")) {
-				builder.addaAsistantMessage(saved.substring(11));
-			} else if (saved.startsWith("SUMMARY: ")) {
-				builder.addSystemMessage(saved.substring(9));
-			}
-		}
+		// 기존 대화 메세지 생성
+		buildExistingMessage(existingConversation, builder);
 
 		// 새 사용자 메시지 추가
 		builder.addUserMessage(newUserMessage);
 
 		ClovaChatRequest chatRequest = builder.build();
-
 		try {
 			String requestJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(chatRequest);
 			//log.info("ClovaChatRequest JSON = \n{}", requestJson);
 		} catch (Exception e) {
 		}
 
-		return client.callModelStream(ClovaStudioClient.HCX_DASH_002, chatRequest);
+		return client.callChatStreamDASH002(chatRequest);
+	}
+
+	private void buildExistingMessage(List<String> existingConversation, ClovaChatMessageBuilder builder) {
+		// 이전 대화를 builder로 재구성
+		for (String saved : existingConversation) {
+			if (saved.startsWith("USER: ")) {
+				builder.addUserMessage(saved.substring(6));
+			} else if (saved.startsWith("ASSISTANT: ")) {
+				builder.addAsistantMessage(saved.substring(11));
+			} else if (saved.startsWith("SUMMARY: ")) {
+				builder.addAsistantMessage(saved.substring(9));
+			}
+		}
+	}
+
+	public int getTokenCount(String message, String modelName) {
+		ClovaChatRequest chatRequest = new ClovaChatMessageBuilder().addUserMessage(message).build();
+		ClovaChatTokenizeResponse clovaChatTokenizeResponse = client.callChatTokenize(modelName,
+			chatRequest.getMessages());
+		return clovaChatTokenizeResponse.getResult().getMessages().getFirst().getContent().getFirst().getCount();
+	}
+
+	public SummaryResult summarizeConversation(List<String> existingConversation) {
+		ClovaChatMessageBuilder builder = new ClovaChatMessageBuilder();
+
+		// 시스템 프롬프트 추가
+		String systemPrompt = PromptUtils.loadPrompt("prompt/system/chatbot-summary-prompt.md");
+		builder.addSystemMessage(systemPrompt);
+
+		buildExistingMessage(existingConversation, builder);
+
+		builder.addUserMessage("요약해줘");
+
+		// Response
+		ClovaChatResponse clovaChatResponse = client.callChatHCX005(builder.build());
+
+		ClovaChatResponse.Result result = clovaChatResponse.getResult();
+		return new SummaryResult(result.getMessage().getContent(), result.getUsage().getCompletionTokens());
 	}
 }

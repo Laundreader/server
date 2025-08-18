@@ -8,8 +8,8 @@ pipeline {
         WORKSPACE = "/var/jenkins_home/workspace/laundreader-prod"
         IMAGE_NAME = 'user-api'
         IMAGE_TAG = "v${BUILD_NUMBER}"
-        BLUE_COMPOSE = "/secure-submodule/docker/docker-compose.blue.yml"
-        GREEN_COMPOSE = "/secure-submodule/docker/docker-compose.green.yml"
+        BLUE_COMPOSE = "${WORKSPACE}/secure-submodule/docker/docker-compose.blue.yml"
+        GREEN_COMPOSE = "${WORKSPACE}/secure-submodule/docker/docker-compose.green.yml"
         USER_API_DOCKERFILE_PATH = "/secure-submodule/docker/user-api.Dockerfile"
         HOST_IP = "49.50.133.246"
         NGINX_UPSTREAM_CONF = "/etc/nginx/conf.d/user-api-upstream.conf"
@@ -71,9 +71,6 @@ pipeline {
                     echo "▶️ Active container: ${active ?: 'None'}"
                     echo "🔄 Next deploy: ${nextService} using ${nextCompose}"
 
-                    // 이전 컨테이너 제거
-                    sh "docker-compose -f ${nextCompose} down || true"
-
                     // 새 컨테이너 시작
                     sh "docker-compose -f ${nextCompose} up -d --build"
 
@@ -95,6 +92,12 @@ pipeline {
                              nginx -t &&
                              systemctl reload nginx"
                         """
+                    }
+
+                    // 이전 컨테이너 종료
+                    if(active) {
+                        echo "Stopping old container: ${active}"
+                        sh "docker rm -f ${active} || true"
                     }
 
                     echo "✅ Traffic switched to ${nextService} (port ${nextPort}) via Nginx"

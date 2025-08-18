@@ -1,6 +1,7 @@
 package com.laundreader.userapi.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -265,5 +266,12 @@ public class ChatService {
 			// 파싱 실패 → 그냥 무시
 		}
 		return Optional.empty();
+	}
+
+	public void deleteSesstion(String sessionId) {
+		String chatKey = "chat:" + sessionId;
+		String tokensKey = chatKey + ":tokens";
+
+		redisTemplate.delete(Arrays.asList(chatKey, tokensKey));
 	}
 }

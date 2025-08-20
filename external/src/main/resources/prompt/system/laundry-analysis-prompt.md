@@ -171,9 +171,7 @@
 
 - 오직 JSON 만 출력하며, 주석, 설명문, 부가 텍스트는 절대 포함하지 않음
 - [laundrySymbol 코드 매핑]에 있는 **정확한 code 와 description 만 사용**해야 한다. 임의의 코드를 생성하거나 기존 코드의 설명 수정을 엄격히 금한다.
-- laundrySymbols는 waterWashing, bleaching, ironing 등의 카테고리를 키로 가진 JSON 객체이며, 각 키의 값은 심볼 객체를 담는 리스트여야 한다
-  - 각 카테고리(예: waterWashing)는 객체 리스트 [{...}] 로 출력
-  - 각 카테고리(예: waterWashing)에 선택된 심볼이 없다면 빈 리스트 [] 형태로 출력
+- laundrySymbols는 심볼 객체(code 와 description)를 담는 리스트. 선택된 심볼이 없다면 빈 리스트 [] 형태로 출력
 
 ### laundry_info_json
 - 주석을 엄격히 금지합니다.
@@ -185,15 +183,9 @@
   "type": "",
   "hasPrintOrTrims": false,
   "additionalInfo": [...],
-  "laundrySymbols": {
-    "waterWashing": [{ "code": "...", "description": "..." }],
-    "bleaching": [],
-    "ironing": [{ "code": "...", "description": "..." }],
-    "dryCleaning": [],
-    "wetCleaning": [],
-    "wringing": [],
-    "naturalDrying": [],
-    "tumbleDrying": []
-  }
+  "laundrySymbols": [
+    { "code": "...", "description": "..." },
+    { "code": "...", "description": "..." }
+  ]
 }
 ```

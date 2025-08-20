@@ -10,6 +10,5 @@
 
 ## 3. 강제 규칙
 - [laundrySymbol 코드 매핑]에 있는 **정확한 code 와 description 만 사용**해야 한다. 임의의 코드를 생성하거나 기존 코드의 설명 수정을 엄격히 금한다.
-- laundrySymbols는 waterWashing, bleaching, ironing 등의 카테고리를 키로 가진 JSON 객체이며, 각 키의 값은 심볼 객체를 담는 리스트여야 한다
 - 알 수 없는 값은 반드시 빈 문자열("") 또는 빈 리스트([])로 출력
 - [가장 중요]**오직 JSON 만 출력하며, JSON 내부 주석, 설명문, 부가 텍스트는 절대 포함하지 않음**

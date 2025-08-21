@@ -197,4 +197,16 @@ public class ClovaStudioService {
 		ClovaChatResponse.Result result = clovaChatResponse.getResult();
 		return new SummaryResult(result.getMessage().getContent(), result.getUsage().getCompletionTokens());
 	}
+
+	public String weatherDrySolution(String forecast) {
+		String systemPrompt = PromptUtils.loadPrompt("prompt/system/weather-dry-solution-prompt.md");
+
+		ClovaChatRequest request = new ClovaChatMessageBuilder()
+			.addSystemMessage(systemPrompt)
+			.addUserMessage(forecast)
+			.build();
+
+		ClovaChatResponse clovaChatResponse = client.callChatHCX005(request);
+		return clovaChatResponse.getResult().getMessage().getContent();
+	}
 }

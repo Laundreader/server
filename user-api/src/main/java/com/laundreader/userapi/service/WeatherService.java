@@ -46,7 +46,7 @@ public class WeatherService {
 		LocalDate forecastDate = now.isAfter(LocalTime.of(21, 0)) ? LocalDate.now().plusDays(1) : LocalDate.now();
 
 		// 캐싱 확인
-		String key = "forecast:" + geoCode + ":" + forecastDate.toString();
+		String key = "forecast:" + geoCode.getName() + ":" + forecastDate.toString();
 		String cachedData = redisTemplate.opsForValue().get(key);
 		if (cachedData != null) {
 			// 캐싱된 데이터가 있으면 그대로 반환

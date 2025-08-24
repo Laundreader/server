@@ -140,7 +140,12 @@ public class ChatService {
 				redisBuffer.append(paragraph).append("\n\n");
 				events.addAll(convertParagraphToSSE(paragraph));
 			}
+
+			// 삭제 후 남은 paragraphBuffer 시작 부분에 연속 \n이 있으면 제거
 			paragraphBuffer.delete(0, index + 2);
+			while (paragraphBuffer.length() >= 2 && paragraphBuffer.substring(0, 2).equals("\n\n")) {
+				paragraphBuffer.delete(0, 2);
+			}
 		}
 		return Flux.fromIterable(events);
 	}
@@ -222,7 +227,10 @@ public class ChatService {
 			}
 		}
 
-		// 3. 문단에서 JSON 제거 후 남은 텍스트 이벤트 생성 {"message":"..."} 로 감싸서 보냄
+		// 3. 남아있는 모든 코드 블록(예: ```text ... ```, ``` ... ```) 제거
+		paragraph = paragraph.replaceAll("```[a-zA-Z]*\\s*([\\s\\S]*?)```", "$1");
+
+		// 4. 문단에서 JSON 제거 후 남은 텍스트 이벤트 생성 {"message":"..."} 로 감싸서 보냄
 		String textPart = paragraph.trim();
 		if (!textPart.isBlank()) {
 			try {
@@ -235,7 +243,7 @@ public class ChatService {
 			}
 		}
 
-		// 마지막 JSON 이벤트 생성
+		// 5. 마지막 JSON 이벤트 생성
 		if (jsonBlock != null) {
 			tryParseAssistantSuggestion(jsonBlock).ifPresent(suggestion -> {
 				try {

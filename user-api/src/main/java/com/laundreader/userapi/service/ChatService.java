@@ -73,14 +73,13 @@ public class ChatService {
 		// 새 사용자 메시지 Redis에 저장
 		redisTemplate.opsForList().rightPush(conversationKey, "USER: " + message);
 
-		StringBuilder redisBuffer = new StringBuilder();   // 원본 누적용
 		StringBuilder paragraphBuffer = new StringBuilder(); // 문단 단위 SSE용
 
 		// ClovaStudioService로 이전 대화+새 메시지로 챗봇 호출 → 스트리밍 반환
 		return clovaStudioService.laundryChatbot(existingConversation, message)
-			.flatMap(event -> handleSseEvent(event, paragraphBuffer, redisBuffer, existingTokens, conversationKey))
-			.concatWith(Flux.defer(() -> flushRemainingParagraph(paragraphBuffer, redisBuffer)))
-			.doFinally(signal -> finalizeResponse(signal, conversationKey, redisBuffer));
+			.flatMap(event -> handleSseEvent(event, paragraphBuffer, existingTokens, conversationKey))
+			.concatWith(Flux.defer(() -> flushRemainingParagraph(paragraphBuffer)))
+			.doFinally(signal -> finalizeResponse(signal, conversationKey));
 	}
 
 	/*
@@ -89,7 +88,6 @@ public class ChatService {
 	private Flux<ServerSentEvent<String>> handleSseEvent(
 		ServerSentEvent<String> event,
 		StringBuilder paragraphBuffer,
-		StringBuilder redisBuffer,
 		AtomicInteger totalTokens,
 		String conversationKey
 	) {
@@ -97,7 +95,7 @@ public class ChatService {
 		String data = event.data();
 
 		if ("token".equals(eventName) && data != null && !data.isBlank()) {
-			return processTokenEvent(data, paragraphBuffer, redisBuffer);
+			return processTokenEvent(data, paragraphBuffer);
 		} else if ("result".equals(eventName) && data != null) {
 			processResultEvent(data, totalTokens, conversationKey);
 		}
@@ -111,11 +109,22 @@ public class ChatService {
 	private void processResultEvent(String data, AtomicInteger totalTokens, String conversationKey) {
 		try {
 			JsonNode node = objectMapper.readTree(data);
+
+			// 토큰 누적 처리
 			JsonNode usageNode = node.at("/usage/totalTokens");
 			if (!usageNode.isMissingNode()) {
 				totalTokens.addAndGet(usageNode.asInt());
 				redisTemplate.opsForValue().set(conversationKey + ":tokens", String.valueOf(totalTokens.get()));
-				log.info("{}:tokens = {}", conversationKey, String.valueOf(totalTokens.get()));
+				log.info("{}:tokens = {}", conversationKey, totalTokens.get());
+			}
+
+			// message.content 저장
+			JsonNode messageNode = node.at("/message/content");
+			if (!messageNode.isMissingNode()) {
+				String content = messageNode.asText();
+				// Redis에 저장
+				redisTemplate.opsForList().rightPush(conversationKey, "ASSISTANT: " + content);
+				log.info("{}:ASSISTANT = {}", conversationKey, content);
 			}
 		} catch (Exception ignored) {
 		}
@@ -126,8 +135,7 @@ public class ChatService {
 	 * */
 	private Flux<ServerSentEvent<String>> processTokenEvent(
 		String data,
-		StringBuilder paragraphBuffer,
-		StringBuilder redisBuffer
+		StringBuilder paragraphBuffer
 	) {
 		String content = extractContent(data);
 		paragraphBuffer.append(content);
@@ -137,7 +145,6 @@ public class ChatService {
 		while ((index = paragraphBuffer.indexOf("\n\n")) >= 0) {
 			String paragraph = paragraphBuffer.substring(0, index).trim();
 			if (!paragraph.isBlank()) {
-				redisBuffer.append(paragraph).append("\n\n");
 				events.addAll(convertParagraphToSSE(paragraph));
 			}
 
@@ -168,12 +175,10 @@ public class ChatService {
 	/*
 	 * 남은 문단 flush
 	 * */
-	private Flux<ServerSentEvent<String>> flushRemainingParagraph(StringBuilder paragraphBuffer,
-		StringBuilder redisBuffer) {
+	private Flux<ServerSentEvent<String>> flushRemainingParagraph(StringBuilder paragraphBuffer) {
 		String remaining = paragraphBuffer.toString().trim();
 		paragraphBuffer.setLength(0);
 		if (!remaining.isBlank()) {
-			redisBuffer.append(remaining).append("\n\n");
 			return Flux.fromIterable(convertParagraphToSSE(remaining));
 		}
 		return Flux.empty();
@@ -182,12 +187,9 @@ public class ChatService {
 	/*
 	 * 응답 종료 시 처리
 	 * */
-	private void finalizeResponse(SignalType signal, String conversationKey, StringBuilder redisBuffer) {
+	private void finalizeResponse(SignalType signal, String conversationKey) {
 		if (signal == SignalType.ON_COMPLETE) {
-			redisTemplate.opsForList()
-				.rightPush(conversationKey, "ASSISTANT: " + redisBuffer.toString().trim());
-			log.info("응답 수신 종료. redis에 저장 ASSISTANT: {}", redisBuffer.toString().trim());
-			redisBuffer.setLength(0);
+			log.info("응답 수신 종료.");
 		}
 	}
 

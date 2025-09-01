@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.external.clova.service.ClovaStudioService;
-import com.laundreader.external.openWeather.OpenWeatherClient;
+import com.laundreader.external.openWeather.client.OpenWeatherClient;
 import com.laundreader.external.openWeather.response.ForecastResponse;
 import com.laundreader.external.openWeather.response.ReverseGeoCodeResponse;
 import com.laundreader.userapi.response.weather.CurrentWeatherResponse;

@@ -2,7 +2,7 @@ spring:
   config:
     import: env.yml
   profiles:
-    active: prod  # 운영 배포 시 'prod'로 오버라이드
+    active: local  # 운영 배포 시 'prod'로 오버라이드
 
 server:
   address: 0.0.0.0

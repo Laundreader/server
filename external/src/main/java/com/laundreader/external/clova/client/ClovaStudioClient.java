@@ -1,4 +1,4 @@
-package com.laundreader.external.clova;
+package com.laundreader.external.clova.client;
 
 import java.util.List;
 import java.util.Map;

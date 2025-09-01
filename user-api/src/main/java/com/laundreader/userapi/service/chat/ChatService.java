@@ -17,10 +17,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.common.util.JsonExtractor;
-import com.laundreader.external.clova.ClovaStudioClient;
+import com.laundreader.external.clova.client.ClovaStudioClient;
+import com.laundreader.external.clova.dto.AssistantSuggestionEventDTO;
+import com.laundreader.external.clova.dto.SummaryResultDTO;
 import com.laundreader.external.clova.service.ClovaStudioService;
-import com.laundreader.external.clova.service.response.AssistantSuggestionEvent;
-import com.laundreader.external.clova.service.response.SummaryResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +53,7 @@ public class ChatService {
 		int newMessageTokens = clovaStudioService.getTokenCount(message, ClovaStudioClient.HCX_DASH_002);
 		if ((existingTokens.get() + newMessageTokens + MAX_MODEL_OUTPUT_TOKENS) > SUMMARY_THRESHOLD) {
 			// 요약 후 토큰 수 포함 반환
-			SummaryResult summaryResult = clovaStudioService.summarizeConversation(existingConversation);
+			SummaryResultDTO summaryResult = clovaStudioService.summarizeConversation(existingConversation);
 			String summaryText = "SUMMARY: 이전 대화 기록 요약입니다.\n" + summaryResult.getText();
 			int tokenCount = summaryResult.getTokenCount();
 
@@ -266,9 +266,9 @@ public class ChatService {
 	}
 
 	// 챗봇 추천 목록 파싱
-	private Optional<AssistantSuggestionEvent> tryParseAssistantSuggestion(String json) {
+	private Optional<AssistantSuggestionEventDTO> tryParseAssistantSuggestion(String json) {
 		try {
-			AssistantSuggestionEvent event = objectMapper.readValue(json, AssistantSuggestionEvent.class);
+			AssistantSuggestionEventDTO event = objectMapper.readValue(json, AssistantSuggestionEventDTO.class);
 			if ("assistant-suggestions".equals(event.getType())) {
 				return Optional.of(event);
 			}

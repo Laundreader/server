@@ -12,6 +12,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.common.util.Base64Extractor;
+import com.laundreader.external.clova.dto.HamperSolutionDTO;
+import com.laundreader.external.clova.dto.LaundryAnalysisDTO;
+import com.laundreader.external.clova.dto.SingleSolutionDTO;
 import com.laundreader.external.clova.service.ClovaOcrService;
 import com.laundreader.external.clova.service.ClovaStudioService;
 import com.laundreader.userapi.dto.image.ImageDTO;
@@ -48,7 +51,7 @@ public class LaundryService {
 		}
 
 		// OCR 텍스트 + 의류 사진(선택) + 라벨 사진
-		com.laundreader.external.clova.service.response.LaundryAnalysisResponse clovaResponse = clovaStudioService.laundryAnalysis(
+		LaundryAnalysisDTO clovaResponse = clovaStudioService.laundryAnalysis(
 			ocrText,
 			labelImage.getData(),
 			Optional.ofNullable(clothesImage).map(ImageDTO::getData).orElse(null)
@@ -77,7 +80,7 @@ public class LaundryService {
 			throw new Exception500(ErrorMessage.INTERNAL_ERROR);
 		}
 
-		com.laundreader.external.clova.service.response.SingleSolutionResponse clovaResponse = clovaStudioService.laundrySolutionSingle(
+		SingleSolutionDTO clovaResponse = clovaStudioService.laundrySolutionSingle(
 			inputData);
 
 		return new SingleSolutionResponse(
@@ -96,7 +99,7 @@ public class LaundryService {
 			throw new Exception500(ErrorMessage.INTERNAL_ERROR);
 		}
 
-		com.laundreader.external.clova.service.response.HamperSolutionResponse clovaResponse = clovaStudioService.laundrySolutionHamper(
+		HamperSolutionDTO clovaResponse = clovaStudioService.laundrySolutionHamper(
 			inputData);
 
 		return new HamperSolutionResponse(
@@ -109,7 +112,7 @@ public class LaundryService {
 	}
 
 	private List<LaundrySymbolDTO> filterLaundrySymbols(
-		List<com.laundreader.external.clova.service.response.LaundryAnalysisResponse.Symbol> symbols) {
+		List<LaundryAnalysisDTO.Symbol> symbols) {
 		Set<String> validCodes = LaundrySymbolCode.getValidCodes();
 
 		return symbols == null ? List.of() :

@@ -1,4 +1,4 @@
-package com.laundreader.external.openWeather;
+package com.laundreader.external.openWeather.client;
 
 import java.util.Arrays;
 import java.util.List;

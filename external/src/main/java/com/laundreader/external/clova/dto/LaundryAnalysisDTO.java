@@ -1,4 +1,4 @@
-package com.laundreader.external.clova.service.response;
+package com.laundreader.external.clova.dto;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import lombok.Getter;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LaundryAnalysisResponse {
+public class LaundryAnalysisDTO {
 	@JsonSetter(nulls = Nulls.AS_EMPTY)
 	private List<String> materials;
 

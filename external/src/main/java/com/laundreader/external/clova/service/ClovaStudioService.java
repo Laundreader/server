@@ -2,7 +2,6 @@ package com.laundreader.external.clova.service;
 
 import java.util.List;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +12,11 @@ import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.common.util.JsonExtractor;
 import com.laundreader.common.util.PromptUtils;
 import com.laundreader.common.util.TrueFalseExtractor;
-import com.laundreader.external.clova.ClovaStudioClient;
+import com.laundreader.external.clova.client.ClovaStudioClient;
+import com.laundreader.external.clova.dto.HamperSolutionDTO;
+import com.laundreader.external.clova.dto.LaundryAnalysisDTO;
+import com.laundreader.external.clova.dto.SingleSolutionDTO;
+import com.laundreader.external.clova.dto.SummaryResultDTO;
 import com.laundreader.external.clova.request.ClovaChatMessageBuilder;
 import com.laundreader.external.clova.request.ClovaChatRequest;
 import com.laundreader.external.clova.request.ClovaThinkingMessageBuilder;
@@ -21,10 +24,6 @@ import com.laundreader.external.clova.request.ClovaThinkingRequest;
 import com.laundreader.external.clova.response.ClovaChatResponse;
 import com.laundreader.external.clova.response.ClovaChatTokenizeResponse;
 import com.laundreader.external.clova.response.ClovaThinkingResponse;
-import com.laundreader.external.clova.service.response.HamperSolutionResponse;
-import com.laundreader.external.clova.service.response.LaundryAnalysisResponse;
-import com.laundreader.external.clova.service.response.SingleSolutionResponse;
-import com.laundreader.external.clova.service.response.SummaryResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,6 @@ public class ClovaStudioService {
 	private final ClovaStudioClient client;
 	private final JsonExtractor jsonExtractor;
 	private final ObjectMapper objectMapper;
-	private final RedisTemplate<String, String> redisTemplate;
 
 	public boolean imageAnalysis(String analysisType, String base64) {
 		String systemPrompt = PromptUtils.loadPrompt("prompt/system/image-analysis-prompt.md");
@@ -54,7 +52,7 @@ public class ClovaStudioService {
 		return TrueFalseExtractor.extractFirstTrueOrFalse(clovaChatResponse.getResult().getMessage().getContent());
 	}
 
-	public LaundryAnalysisResponse laundryAnalysis(String ocrText, String labelBase64, String clothesBase64) {
+	public LaundryAnalysisDTO laundryAnalysis(String ocrText, String labelBase64, String clothesBase64) {
 		String systemPrompt = PromptUtils.loadPrompt("prompt/system/laundry-analysis-prompt.md");
 		String userFinalTurnPrompt = PromptUtils.loadPrompt("prompt/user/laundry-analysis-prompt.md");
 
@@ -64,9 +62,6 @@ public class ClovaStudioService {
 			.addUserMessage(ocrText, clothesBase64)
 			.addUserMessage(userFinalTurnPrompt, labelBase64)
 			.build();
-		//        request.setTemperature(0.3); // 랜덤성을 줄이고 안정적인 응답을 보장
-		//        request.setTopP(0.8); // 후보 제한을 없애고 가장 확실한 답변만 뽑게 함.
-		//        request.setTopK(0);
 
 		// Response
 		ClovaChatResponse clovaChatResponse = client.callChatHCX005(request);
@@ -76,7 +71,7 @@ public class ClovaStudioService {
 		try {
 			String jsonText = jsonExtractor.extractValidJsonBlock(
 				clovaChatResponse.getResult().getMessage().getContent());
-			return objectMapper.readValue(jsonText, LaundryAnalysisResponse.class);
+			return objectMapper.readValue(jsonText, LaundryAnalysisDTO.class);
 		} catch (JsonProcessingException e) {
 			log.error("clova 세탁물 분석 json 추출 실패: " + e.getMessage());
 			throw new Exception500(ErrorMessage.CLOVA_STUDIO_RESPONSE_PARSING_FAILED);
@@ -84,7 +79,7 @@ public class ClovaStudioService {
 	}
 
 	// 단일 세탁 솔루션
-	public SingleSolutionResponse laundrySolutionSingle(String inputData) {
+	public SingleSolutionDTO laundrySolutionSingle(String inputData) {
 		String systemPrompt = PromptUtils.loadPrompt("prompt/system/laundry-solution-single-prompt.md");
 
 		// Request
@@ -101,7 +96,7 @@ public class ClovaStudioService {
 		try {
 			String jsonText = jsonExtractor.extractValidJsonBlock(
 				clovaChatResponse.getResult().getMessage().getContent());
-			return objectMapper.readValue(jsonText, SingleSolutionResponse.class);
+			return objectMapper.readValue(jsonText, SingleSolutionDTO.class);
 		} catch (JsonProcessingException e) {
 			log.error("clova 단일 세탁 솔루션 json 추출 실패: " + e.getMessage());
 			throw new Exception500(ErrorMessage.CLOVA_STUDIO_RESPONSE_PARSING_FAILED);
@@ -109,7 +104,7 @@ public class ClovaStudioService {
 	}
 
 	// 빨래 바구니 세탁 솔루션
-	public HamperSolutionResponse laundrySolutionHamper(String inputData) {
+	public HamperSolutionDTO laundrySolutionHamper(String inputData) {
 		String systemPrompt = PromptUtils.loadPrompt("prompt/system/laundry-solution-hamper-prompt.md");
 
 		// Request
@@ -126,7 +121,7 @@ public class ClovaStudioService {
 		try {
 			String jsonText = jsonExtractor.extractValidJsonBlock(
 				clovaThinkingResponse.getResult().getMessage().getContent());
-			return objectMapper.readValue(jsonText, HamperSolutionResponse.class);
+			return objectMapper.readValue(jsonText, HamperSolutionDTO.class);
 		} catch (JsonProcessingException e) {
 			log.error("clova 빨래바구니 세탁 솔루션 json 추출 실패: " + e.getMessage());
 			throw new Exception500(ErrorMessage.CLOVA_STUDIO_RESPONSE_PARSING_FAILED);
@@ -180,7 +175,7 @@ public class ClovaStudioService {
 		return clovaChatTokenizeResponse.getResult().getMessages().getFirst().getContent().getFirst().getCount();
 	}
 
-	public SummaryResult summarizeConversation(List<String> existingConversation) {
+	public SummaryResultDTO summarizeConversation(List<String> existingConversation) {
 		ClovaChatMessageBuilder builder = new ClovaChatMessageBuilder();
 
 		// 시스템 프롬프트 추가
@@ -195,7 +190,7 @@ public class ClovaStudioService {
 		ClovaChatResponse clovaChatResponse = client.callChatHCX005(builder.build());
 
 		ClovaChatResponse.Result result = clovaChatResponse.getResult();
-		return new SummaryResult(result.getMessage().getContent(), result.getUsage().getCompletionTokens());
+		return new SummaryResultDTO(result.getMessage().getContent(), result.getUsage().getCompletionTokens());
 	}
 
 	public String weatherDrySolution(String forecast) {

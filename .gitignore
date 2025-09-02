@@ -1,0 +1,38 @@
+# === Gradle ===
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# === IntelliJ ===
+.idea/
+*.iml
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+
+# === Environment ===
+.env
+.env.*
+
+# === Compiled ===
+*.class
+
+# === Others (optional) ===
+*.swp
+*.bak
+
+# spring boot local settings
+/user-api/src/main/resources/application-local.yml
+/docker-compose-*.yml
+
+# === Secure Submodule ===
+docker-compose.yml
+user-api.Dockerfile
+Jenkinsfile
+server-init.sh
+env.yml

@@ -6,18 +6,10 @@ spring:
   profiles:
     active: local
 
+management:
   endpoints:
     web:
       base-path: /actuator
-
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
 
 server:
   address: 0.0.0.0

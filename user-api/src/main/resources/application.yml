@@ -1,8 +1,14 @@
 spring:
+  application:
+    name: user-api
   config:
     import: env.yml
   profiles:
-    active: local  # 운영 배포 시 'prod'로 오버라이드
+    active: local
+
+  endpoints:
+    web:
+      base-path: /actuator
 
 server:
   address: 0.0.0.0

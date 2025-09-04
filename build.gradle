@@ -58,15 +58,8 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-web'
         implementation 'org.springframework.boot:spring-boot-starter-validation'
         implementation 'org.springframework.boot:spring-boot-starter-aop'
-        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-        implementation 'io.lettuce:lettuce-core'
-        implementation 'org.springframework.boot:spring-boot-starter-webflux'
-        // implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        // implementation 'org.springframework.boot:spring-boot-docker-compose'
-        // runtimeOnly 'com.mysql:mysql-connector-j'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     tasks.withType(Test).configureEach {
@@ -97,6 +90,8 @@ project(':domain') {
 
     dependencies {
         implementation project(':common')
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        runtimeOnly 'com.mysql:mysql-connector-j'
     }
 }
 project(':external') {
@@ -126,5 +121,9 @@ project(':user-api') {
         implementation project(':common')
         implementation project(':domain')
         implementation project(':external')
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        implementation 'io.micrometer:micrometer-registry-prometheus'
+        developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     }
 }

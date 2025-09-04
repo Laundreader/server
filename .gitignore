@@ -26,13 +26,8 @@ Thumbs.db
 *.swp
 *.bak
 
-# spring boot local settings
-/user-api/src/main/resources/application-local.yml
-/docker-compose-*.yml
-
 # === Secure Submodule ===
-docker-compose.yml
-user-api.Dockerfile
-Jenkinsfile
 server-init.sh
 env.yml
+
+# === local ===

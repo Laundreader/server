@@ -8,10 +8,10 @@ services:
     container_name: user-api
     ports:
       - "8080:8080"
+    env_file:
+      - ./secure-submodule/env/db.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - REDIS_HOST=redis.laundreader.com
-      - REDIS_PORT=6379
     restart: always
     networks:
       - laundreader
@@ -33,26 +33,6 @@ services:
       - "3000:3000"
     networks:
       - laundreader
-
-  mysql: # 로컬 test DB
-    image: mysql:8.0
-    ports:
-      - "3307:3306"
-    environment:
-      MYSQL_DATABASE: test_db
-      MYSQL_USER: test_user
-      MYSQL_PASSWORD: test_pass
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  db_data:
 
 networks:
   laundreader:

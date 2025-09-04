@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    env_file:
+      - ./secure-submodule/env/db.env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: redis
+    env_file:
+      - ./secure-submodule/env/db.env
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  mysql_data:
+  redis-data:

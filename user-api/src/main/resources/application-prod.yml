@@ -4,8 +4,8 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   redis:
-    host: ${REDIS_HOST}
-    port: ${REDIS_PORT}
+    host: ${SPRING_REDIS_HOST}
+    port: ${SPRING_REDIS_PORT}
   jpa:
     hibernate:
       ddl-auto: none

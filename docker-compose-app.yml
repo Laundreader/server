@@ -8,8 +8,6 @@ services:
       - "8080:8080"
     env_file:
       - ./secure-submodule/env/db.env
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
     restart: always
     networks:
       - laundreader

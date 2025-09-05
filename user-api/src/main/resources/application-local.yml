@@ -9,25 +9,13 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+    generate-ddl: true
     properties:
       hibernate:
         format_sql: true
         show_sql: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, metrics, prometheus
-        exclude: env, loggers, heapdump, threaddump
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    tags:
-      application: user-api
-  prometheus:
-    enabled: true
-
+        hbm2ddl.auto: create
+  flyway:
+    enabled: false
 server:
   port: 8080

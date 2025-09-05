@@ -93,10 +93,12 @@ project(':domain') {
 
         // JPA & MySQL
         implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-        runtimeOnly 'com.mysql:mysql-connector-j'
+        implementation 'mysql:mysql-connector-java:8.0.33'
 
         // Flyway
-        implementation 'org.flywaydb:flyway-core'
+        implementation 'org.flywaydb:flyway-core:8.5.0'
+        implementation 'org.flywaydb:flyway-mysql:8.0.0' // MySQL 지원 모듈
+
     }
 }
 project(':external') {

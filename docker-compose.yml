@@ -9,9 +9,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./secure-submodule/env/db.env
-    environment:
-      - SPRING_PROFILES_ACTIVE=local
+      - ./secure-submodule/env/compose-local.env
     restart: always
     networks:
       - laundreader

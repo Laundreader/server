@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./secure-submodule/env/db.env
+      - ./secure-submodule/env/compose-prod.env
     restart: always
     networks:
       - laundreader

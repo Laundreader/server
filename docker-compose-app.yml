@@ -37,3 +37,6 @@ services:
 networks:
   laundreader:
     driver: bridge
+
+volumes:
+  grafana_data:

@@ -14,14 +14,17 @@
   <img src="https://img.shields.io/badge/Gradle-02303A?style=flat&logo=gradle&logoColor=white">
   <img src="https://img.shields.io/badge/Spring Boot (3.2.4)-6DB33F?style=flat&logo=springboot&logoColor=white">
   <img src="https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white">
-  <img src="https://img.shields.io/badge/HyperCLOVA X-E151E3?style=flat&logo=naver&logoColor=white">
-  <img src="https://img.shields.io/badge/CLOVA Studio-1435CE?style=flat&logo=naver&logoColor=white">
-</p>
-<p align=left>
-  <img src="https://img.shields.io/badge/Naver Cloud Server-03C75A?style=flat&logo=naver&logoColor=white">
   <img src="https://img.shields.io/badge/nginx-009639?style=flat&logo=nginx&logoColor=white">
   <img src="https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white">
   <img src="https://img.shields.io/badge/Jenkins-D24939?style=flat&logo=jenkins&logoColor=white">
+</p>
+[ Naver Cloud Platform ]
+<p align=left>
+  <img src="https://img.shields.io/badge/NCP Compute-117CE9?style=flat&logo=naver&logoColor=white">
+  <img src="https://img.shields.io/badge/NCP Storage-F85F51?style=flat&logo=naver&logoColor=white">
+  <img src="https://img.shields.io/badge/NCP Networking-712DCB?style=flat&logo=naver&logoColor=white">
+  <img src="https://img.shields.io/badge/NCP Security-3ED1A6?style=flat&logo=naver&logoColor=white">
+  <img src="https://img.shields.io/badge/NCP AI Services (CLOVA OCR, CLOVA Studio)-24ACFA?style=flat&logo=naver&logoColor=white">
 </p>
 
 ## 🏗️ 아키텍쳐

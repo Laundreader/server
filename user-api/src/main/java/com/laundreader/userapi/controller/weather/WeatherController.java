@@ -16,7 +16,7 @@ import com.laundreader.userapi.service.weather.WeatherService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/user-api/weather/")
+@RequestMapping("/public/weather/")
 @RequiredArgsConstructor
 public class WeatherController {
 	private final WeatherService weatherService;

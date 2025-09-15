@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/user-api/laundry/")
+@RequestMapping("/public/laundry/")
 @RequiredArgsConstructor
 @Validated
 @Slf4j

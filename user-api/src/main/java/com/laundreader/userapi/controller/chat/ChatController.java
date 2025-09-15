@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 @RestController
-@RequestMapping("/user-api/chat/")
+@RequestMapping("/public/chat/")
 @RequiredArgsConstructor
 @Validated
 @Slf4j

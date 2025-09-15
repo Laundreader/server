@@ -11,6 +11,7 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT}
   datasource:
     url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 

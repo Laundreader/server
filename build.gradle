@@ -58,6 +58,8 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-web'
         implementation 'org.springframework.boot:spring-boot-starter-validation'
         implementation 'org.springframework.boot:spring-boot-starter-aop'
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
     }
@@ -77,6 +79,8 @@ project(':common') {
     }
 
     dependencies {
+//        implementation 'com.fasterxml.jackson.core:jackson-databind'
+//        implementation 'org.springframework:spring-web'
     }
 }
 project(':domain') {
@@ -91,13 +95,12 @@ project(':domain') {
     dependencies {
         implementation project(':common')
 
-        // JPA & MySQL
-        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        // MySQL
         implementation 'mysql:mysql-connector-java:8.0.33'
 
         // Flyway
         implementation 'org.flywaydb:flyway-core:8.5.0'
-        implementation 'org.flywaydb:flyway-mysql:8.0.0' // MySQL 지원 모듈
+        //implementation 'org.flywaydb:flyway-mysql:8.0.0' // MySQL 지원 모듈
 
     }
 }
@@ -128,9 +131,14 @@ project(':user-api') {
         implementation project(':common')
         implementation project(':domain')
         implementation project(':external')
-        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+        runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+        runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
         implementation 'org.springframework.boot:spring-boot-starter-actuator'
         implementation 'io.micrometer:micrometer-registry-prometheus'
-        developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+        //developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     }
 }

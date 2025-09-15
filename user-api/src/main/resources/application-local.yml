@@ -1,4 +1,13 @@
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    url: jdbc:mysql://localhost:3306/laundreader?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: test_user
+    password: test_pass
   jpa:
     hibernate:
       ddl-auto: update
@@ -7,6 +16,7 @@ spring:
       hibernate:
         format_sql: true
         show_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
         hbm2ddl.auto: create
   flyway:
     enabled: false

@@ -32,11 +32,8 @@ public class AuthService {
 		String email = tokenService.getEmailByRefreshToken(oldRefreshToken)
 			.orElseThrow(() -> new Exception400("Invalid refresh token: ", "not found in Redis"));
 
-		// oldAccessToken 블랙리스트 등록
-		tokenService.addToBlacklist(oldAccessToken);
-
-		// oldRefreshToken 삭제
-		tokenService.deleteRefreshToken(oldRefreshToken);
+		// 기존 토큰 무효화
+		invalidateTokens(oldAccessToken, oldRefreshToken);
 
 		// 사용자 로드
 		User user = userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
@@ -44,5 +41,16 @@ public class AuthService {
 
 		// Token 발급  (새 Access + Refresh Token 생성 및 Redis 저장)
 		return tokenService.generateTokens(user);
+	}
+
+	public void logout(String accessToken, String refreshToken) {
+		invalidateTokens(accessToken, refreshToken);
+	}
+
+	public void invalidateTokens(String accessToken, String refreshToken) {
+		// accessToken 블랙리스트 등록
+		tokenService.addToBlacklist(accessToken);
+		// refreshToken 삭제
+		tokenService.deleteRefreshToken(refreshToken);
 	}
 }

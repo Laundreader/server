@@ -1,4 +1,4 @@
-package com.laundreader.userapi._core.security;
+package com.laundreader.userapi._core.security.jwt.response;
 
 import java.io.IOException;
 
@@ -10,12 +10,14 @@ import com.laundreader.common.error.exception.Exception403;
 import com.laundreader.common.util.JsonConverter;
 
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
-public class FilterResponseUtils {
+public class FilterResponse {
 	private static JsonConverter jsonConverter;
+
+	public FilterResponse(JsonConverter jsonConverter) {
+		FilterResponse.jsonConverter = jsonConverter; // static 필드 초기화
+	}
 
 	public static void badRequest(HttpServletResponse resp, Exception400 e) throws IOException {
 		resp.setStatus(e.status().value());

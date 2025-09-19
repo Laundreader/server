@@ -1,6 +1,7 @@
 package com.laundreader.userapi._core.security.jwt;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,6 +38,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+	private static final String[] WHITELIST = {
+		"/error",
+		"/favicon.ico",
+		"/login",
+		"/oauth2",
+		"/auth",
+		"/actuator",
+		"/public"
+	};
+
 	private final JwtTokenProvider jwtTokenProvider;
 	private final RedisService redisService;
 	private final PrincipalDetailsService principalDetailsService;
@@ -44,6 +55,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
+
+		// 인증 필요 없는 경로는 필터 건너뛰기
+		String path = request.getRequestURI();
+		if (Arrays.stream(WHITELIST).anyMatch(path::startsWith)) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 
 		// 1. 쿠키에서 토큰 가져오기
 		String token = resolveToken(request);
@@ -63,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		filterChain.doFilter(request, response);
 	}
 
-	// Request Header에서 token 값 추출
+	// Request Cookie에서 token 값 추출
 	public String resolveToken(HttpServletRequest request) {
 		if (request.getCookies() == null)
 			return null;

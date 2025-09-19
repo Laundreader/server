@@ -12,9 +12,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.laundreader.common.error.exception.Exception401;
 import com.laundreader.common.error.exception.Exception403;
-import com.laundreader.userapi._core.security.FilterResponseUtils;
+import com.laundreader.userapi._core.oauth.CustomOAuth2FailureHandler;
+import com.laundreader.userapi._core.oauth.CustomOAuth2SuccessHandler;
+import com.laundreader.userapi._core.oauth.CustomOAuth2UserService;
 import com.laundreader.userapi._core.security.jwt.JwtAuthenticationFilter;
 import com.laundreader.userapi._core.security.jwt.JwtExceptionFilter;
+import com.laundreader.userapi._core.security.jwt.response.FilterResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 public class SecurityConfig {
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final JwtExceptionFilter jwtExceptionFilter;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final CustomOAuth2SuccessHandler successHandler;
+	private final CustomOAuth2FailureHandler failureHandler;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,22 +49,31 @@ public class SecurityConfig {
 		http.exceptionHandling(auth -> {
 			// 인증 실패 처리
 			auth.authenticationEntryPoint((request, response, authException) -> {
-				log.warn(request.getRequestURI() + " 인증되지 않은 사용자가 자원에 접근하려 합니다: " + authException.getMessage());
-				FilterResponseUtils.unAuthorized(response, new Exception401("인증되지 않았습니다"));
+				FilterResponse.unAuthorized(response, new Exception401("인증되지 않았습니다"));
 			});
 
 			// 권한 실패 처리
 			auth.accessDeniedHandler((request, response, accessDeniedException) -> {
 				log.warn(request.getRequestURI() + " 권한이 없는 사용자가 자원에 접근하려 합니다: " + accessDeniedException.getMessage());
-				FilterResponseUtils.forbidden(response, new Exception403("권한이 없습니다"));
+				FilterResponse.forbidden(response, new Exception403("권한이 없습니다"));
 			});
 		});
 
 		// 인증, 권한 필터 설정
 		http.authorizeHttpRequests(auth -> auth
-			.requestMatchers("/actuator/**", "/user-api/**").permitAll()
+			.requestMatchers("/error", "/favicon.ico").permitAll()
+			.requestMatchers("/login/**", "/oauth2/**", "/auth/**").permitAll()
+			.requestMatchers("/actuator/**", "/public/**").permitAll()
 			.anyRequest().authenticated()
 		);
+
+		http.oauth2Login(oauth2 -> oauth2
+			.userInfoEndpoint(userInfo -> userInfo
+				.userService(customOAuth2UserService)
+			)
+			.successHandler(successHandler)
+			.failureHandler(failureHandler)
+		); // OAuth2 로그인 활성화
 
 		return http.build();
 	}

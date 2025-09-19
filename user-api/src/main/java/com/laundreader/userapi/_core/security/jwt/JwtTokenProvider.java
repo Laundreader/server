@@ -82,15 +82,20 @@ public class JwtTokenProvider {
 	}
 
 	// 토큰에서 유효기간 추출
-	public Long getExpiration(String jwt) {
-		Date expiration = Jwts.parserBuilder()
-			.setSigningKey(JWT_KEY)
-			.build()
-			.parseClaimsJws(jwt)
-			.getBody()
-			.getExpiration();
+	public Long getRemainingMs(String jwt) {
+		try {
+			Date expiration = Jwts.parserBuilder()
+				.setSigningKey(JWT_KEY)
+				.build()
+				.parseClaimsJws(jwt)
+				.getBody()
+				.getExpiration();
 
-		Long now = new Date().getTime();
-		return (expiration.getTime() - now);
+			Long now = System.currentTimeMillis();
+			long remainingMs = expiration.getTime() - now;
+			return Math.max(0, remainingMs); //음수 방지
+		} catch (ExpiredJwtException e) {
+			return 0L;
+		}
 	}
 }

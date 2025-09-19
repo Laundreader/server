@@ -62,7 +62,7 @@ public class SecurityConfig {
 		// 인증, 권한 필터 설정
 		http.authorizeHttpRequests(auth -> auth
 			.requestMatchers("/error", "/favicon.ico").permitAll()
-			.requestMatchers("/login/**", "/oauth2/**", "/auth/**").permitAll()
+			.requestMatchers("/login/**", "/oauth2/**", "/auth/reissue").permitAll()
 			.requestMatchers("/actuator/**", "/public/**").permitAll()
 			.anyRequest().authenticated()
 		);

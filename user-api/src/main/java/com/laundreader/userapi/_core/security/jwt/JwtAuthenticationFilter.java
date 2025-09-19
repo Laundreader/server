@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		"/favicon.ico",
 		"/login",
 		"/oauth2",
-		"/auth",
+		"/auth/reissue",
 		"/actuator",
 		"/public"
 	};

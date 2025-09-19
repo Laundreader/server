@@ -13,10 +13,10 @@ public class CookieUtil {
 			.path("/")
 			.sameSite(Cookie.SameSite.NONE.attributeValue())
 			.maxAge(age)
-			.path("/")
-			.secure(true) // https 환경에서만 쿠키가 발동
-			.sameSite(Cookie.SameSite.NONE.attributeValue())
-			.httpOnly(true) // 브라우저에서 접근 불가
 			.build();
+	}
+
+	public static ResponseCookie deleteCookie(String name) {
+		return createCookie(name, "", 0); // MaxAge=0 → 브라우저에서 즉시 삭제
 	}
 }

@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.laundreader.common.redis.RedisService;
-import com.laundreader.domain.User.entity.User;
+import com.laundreader.domain.user.entity.User;
 import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi._core.security.jwt.JwtTokenProvider;
 import com.laundreader.userapi._core.security.jwt.response.TokenResponse;
@@ -28,12 +28,11 @@ public class JwtTokenService {
 		return new TokenResponse(accessToken, refreshToken);
 	}
 
-	public void saveRefreshToken(String refreshToken, String email) {
-		redisService.setString(
-			AppConstants.REDIS_REFRESH_TOKEN_PREFIX + refreshToken,
-			email,
-			AppConstants.REFRESH_TOKEN_EXP
-		);
+	public void invalidateTokens(String accessToken, String refreshToken) {
+		// accessToken 블랙리스트 등록
+		addToBlacklist(accessToken);
+		// refreshToken 삭제
+		deleteRefreshToken(refreshToken);
 	}
 
 	public Optional<String> getEmailByRefreshToken(String refreshToken) {
@@ -42,11 +41,19 @@ public class JwtTokenService {
 		);
 	}
 
-	public void deleteRefreshToken(String refreshToken) {
+	private void saveRefreshToken(String refreshToken, String email) {
+		redisService.setString(
+			AppConstants.REDIS_REFRESH_TOKEN_PREFIX + refreshToken,
+			email,
+			AppConstants.REFRESH_TOKEN_EXP
+		);
+	}
+
+	private void deleteRefreshToken(String refreshToken) {
 		redisService.deleteKey(AppConstants.REDIS_REFRESH_TOKEN_PREFIX + refreshToken);
 	}
 
-	public void addToBlacklist(String token) {
+	private void addToBlacklist(String token) {
 		Long remainingMs = tokenProvider.getRemainingMs(token);
 		redisService.addToBlacklist(token, remainingMs);
 	}

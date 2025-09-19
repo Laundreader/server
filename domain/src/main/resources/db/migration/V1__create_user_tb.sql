@@ -1,4 +1,4 @@
--- V1__init.sql
+-- V1__create_user_tb.sql
 -- 초기 스키마 정의
 
 CREATE TABLE user_tb (

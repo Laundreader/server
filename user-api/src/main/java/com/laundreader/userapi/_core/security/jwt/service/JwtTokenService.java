@@ -18,6 +18,16 @@ public class JwtTokenService {
 	private final JwtTokenProvider tokenProvider;
 	private final RedisService redisService;
 
+	public TokenResponse generateTokens(User user) {
+		String accessToken = tokenProvider.generateAccessToken(user);
+		String refreshToken = tokenProvider.generateRefreshToken();
+
+		// Redis에 Refresh Token 저장
+		saveRefreshToken(refreshToken, user.getEmail());
+
+		return new TokenResponse(accessToken, refreshToken);
+	}
+
 	public void saveRefreshToken(String refreshToken, String email) {
 		redisService.setString(
 			AppConstants.REDIS_REFRESH_TOKEN_PREFIX + refreshToken,
@@ -36,13 +46,8 @@ public class JwtTokenService {
 		redisService.deleteKey(AppConstants.REDIS_REFRESH_TOKEN_PREFIX + refreshToken);
 	}
 
-	public TokenResponse generateTokens(User user) {
-		String accessToken = tokenProvider.generateAccessToken(user);
-		String refreshToken = tokenProvider.generateRefreshToken();
-
-		// Redis에 Refresh Token 저장
-		saveRefreshToken(refreshToken, user.getEmail());
-
-		return new TokenResponse(accessToken, refreshToken);
+	public void addToBlacklist(String token) {
+		Long remainingMs = tokenProvider.getRemainingMs(token);
+		redisService.addToBlacklist(token, remainingMs);
 	}
 }

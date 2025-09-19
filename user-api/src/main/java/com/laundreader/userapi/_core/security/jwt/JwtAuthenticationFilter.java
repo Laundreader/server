@@ -68,8 +68,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		// 2. 토큰 검증 및 인증 정보 생성
 		if (token != null && jwtTokenProvider.isTokenValid(token)) {
-			if (redisService.hasKey(token)) {
-				throw new JwtException("Already logged out User");
+			if (redisService.isBlacklisted(token)) {
+				throw new JwtException("블랙리스트에 등록된 토큰입니다.");
 			}
 
 			// 토큰으로부터 유저 정보 받아오기

@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service;
 
 import com.laundreader.common.error.exception.Exception400;
 import com.laundreader.common.error.exception.Exception404;
-import com.laundreader.domain.User.entity.User;
-import com.laundreader.domain.User.repository.UserRepository;
-import com.laundreader.domain.User.type.UserStatus;
+import com.laundreader.domain.user.entity.User;
+import com.laundreader.domain.user.repository.UserRepository;
+import com.laundreader.domain.user.type.UserStatus;
 import com.laundreader.userapi._core.security.jwt.JwtTokenProvider;
 import com.laundreader.userapi._core.security.jwt.response.TokenResponse;
 import com.laundreader.userapi._core.security.jwt.service.JwtTokenService;
@@ -17,8 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 	private final UserRepository userRepository;
-	private final JwtTokenService tokenService;
 	private final JwtTokenProvider tokenProvider;
+	private final JwtTokenService tokenService;
 
 	public TokenResponse reissue(String oldAccessToken, String oldRefreshToken) {
 		// refreshToken 유효성 검사 (만료)
@@ -33,7 +33,7 @@ public class AuthService {
 			.orElseThrow(() -> new Exception400("Invalid refresh token: ", "not found in Redis"));
 
 		// 기존 토큰 무효화
-		invalidateTokens(oldAccessToken, oldRefreshToken);
+		tokenService.invalidateTokens(oldAccessToken, oldRefreshToken);
 
 		// 사용자 로드
 		User user = userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
@@ -44,13 +44,6 @@ public class AuthService {
 	}
 
 	public void logout(String accessToken, String refreshToken) {
-		invalidateTokens(accessToken, refreshToken);
-	}
-
-	public void invalidateTokens(String accessToken, String refreshToken) {
-		// accessToken 블랙리스트 등록
-		tokenService.addToBlacklist(accessToken);
-		// refreshToken 삭제
-		tokenService.deleteRefreshToken(refreshToken);
+		tokenService.invalidateTokens(accessToken, refreshToken);
 	}
 }

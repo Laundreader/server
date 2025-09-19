@@ -1,4 +1,4 @@
-package com.laundreader.domain.User.entity;
+package com.laundreader.domain.user.entity;
 
 import java.sql.Timestamp;
 
@@ -7,9 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.laundreader.domain.User.type.Provider;
-import com.laundreader.domain.User.type.Role;
-import com.laundreader.domain.User.type.UserStatus;
+import com.laundreader.domain.user.type.Provider;
+import com.laundreader.domain.user.type.Role;
+import com.laundreader.domain.user.type.UserStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

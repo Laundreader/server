@@ -3,11 +3,13 @@ spring:
     redis:
       host: localhost
       port: 6379
+
   datasource:
     url: jdbc:mysql://localhost:3306/laundreader?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: test_user
     password: test_pass
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,7 +20,18 @@ spring:
         show_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
         hbm2ddl.auto: create
+
   flyway:
     enabled: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            redirect-uri: http://localhost:8080/login/oauth2/code/naver
+          kakao:
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+
 server:
   port: 8080

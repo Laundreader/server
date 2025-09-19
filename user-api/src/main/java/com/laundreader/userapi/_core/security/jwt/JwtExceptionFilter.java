@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.laundreader.common.error.exception.Exception400;
-import com.laundreader.userapi._core.security.FilterResponseUtils;
+import com.laundreader.userapi._core.security.jwt.response.FilterResponse;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -30,6 +30,6 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
 	}
 
 	public void setErrorResponse(HttpServletRequest req, HttpServletResponse res, Throwable ex) throws IOException {
-		FilterResponseUtils.badRequest(res, new Exception400("JWT", ex.getMessage()));
+		FilterResponse.badRequest(res, new Exception400("JWT", ex.getMessage()));
 	}
 }

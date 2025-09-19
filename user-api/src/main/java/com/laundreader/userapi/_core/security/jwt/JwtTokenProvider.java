@@ -34,23 +34,20 @@ public class JwtTokenProvider {
 		JWT_KEY = Keys.hmacShaKeyFor(keyBytes);
 	}
 
-	public String createAccessToken(User user) {
-		String jwt = Jwts.builder()
+	public String generateAccessToken(User user) {
+		return Jwts.builder()
 			.setSubject(user.getEmail())
-			.setExpiration(new Date(System.currentTimeMillis() + AppConstants.ACCESS_TOKEN_EXP))
-			.claim("id", user.getId())
 			.claim("role", String.valueOf(user.getRole()))
+			.setExpiration(new Date(System.currentTimeMillis() + AppConstants.ACCESS_TOKEN_EXP))
 			.signWith(JWT_KEY, SignatureAlgorithm.HS256)
 			.compact();
-		return jwt;
 	}
 
-	public String createRefreshToken() {
-		String jwt = Jwts.builder()
+	public String generateRefreshToken() {
+		return Jwts.builder()
 			.setExpiration(new Date(System.currentTimeMillis() + AppConstants.REFRESH_TOKEN_EXP))
 			.signWith(JWT_KEY, SignatureAlgorithm.HS256)
 			.compact();
-		return jwt;
 	}
 
 	// 토큰 검증
@@ -75,11 +72,11 @@ public class JwtTokenProvider {
 	}
 
 	// 토큰에서 email 정보 추출
-	public String getEmail(String jwt) {
+	public String getEmail(String token) {
 		return Jwts.parserBuilder()
 			.setSigningKey(JWT_KEY)
 			.build()
-			.parseClaimsJws(jwt)
+			.parseClaimsJws(token)
 			.getBody()
 			.getSubject();
 	}

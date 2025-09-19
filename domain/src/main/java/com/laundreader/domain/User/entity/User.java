@@ -1,6 +1,6 @@
 package com.laundreader.domain.User.entity;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,35 +20,43 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "user_tb")
-@Getter
 @DynamicInsert
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, length = 255, unique = true)
+	@Column(nullable = false, length = 255)
 	private String email;
 
-	@Column(nullable = false, length = 60)
-	private String password;
+	@Column(nullable = false, length = 10)
+	private String ageRange; // 필수
+
+	@Column(nullable = false, length = 30)
+	private String nickname; // 선택, 미제공시 임의 지정
+
+	@Column(length = 10)
+	private String gender;   // 선택
 
 	@Column(nullable = false, length = 10)
+	@Enumerated(EnumType.STRING)
 	private Provider provider;
 
 	@Column(nullable = false, length = 10)
 	@Enumerated(EnumType.STRING)
 	@ColumnDefault("'USER'")
 	private Role role;
-
-	@Column(nullable = false, length = 30)
-	private String nickName;
 
 	@Column(nullable = false, length = 10)
 	@Enumerated(EnumType.STRING)

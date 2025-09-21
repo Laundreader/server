@@ -11,6 +11,7 @@ import com.laundreader.domain.user.repository.UserRepository;
 import com.laundreader.domain.withdrawLog.entity.WithdrawLog;
 import com.laundreader.domain.withdrawLog.repository.WithdrawLogRepository;
 import com.laundreader.userapi._core.security.jwt.service.JwtTokenService;
+import com.laundreader.userapi.response.user.UserMeResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,6 +42,10 @@ public class UserService {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleWithdraw(UserWithdrawnEvent event) {
 		tokenService.invalidateTokens(event.accessToken(), event.refreshToken());
+	}
+
+	public UserMeResponse getUserMe(User user) {
+		return new UserMeResponse(user.getEmail(), user.getProvider().name(), user.getNickname());
 	}
 
 	public record UserWithdrawnEvent(String email, String accessToken, String refreshToken) {

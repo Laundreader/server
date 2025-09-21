@@ -8,13 +8,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.laundreader.common.util.ApiUtils;
 import com.laundreader.domain.user.entity.User;
 import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi._core.security.auth.PrincipalDetails;
 import com.laundreader.userapi._core.security.jwt.service.JwtCookieService;
+import com.laundreader.userapi.response.user.UserMeResponse;
 import com.laundreader.userapi.service.user.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -45,5 +48,15 @@ public class UserController {
 		headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 		headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 		return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@GetMapping("/me")
+	public ResponseEntity<ApiUtils.ApiResult> me(
+		@AuthenticationPrincipal PrincipalDetails principal
+	) {
+		User user = principal.getUser();
+		UserMeResponse response = userService.getUserMe(user);
+		return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
 	}
 }

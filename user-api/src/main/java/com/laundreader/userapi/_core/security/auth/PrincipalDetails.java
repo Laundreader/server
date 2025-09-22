@@ -9,8 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.laundreader.domain.user.entity.User;
-import com.laundreader.domain.user.type.UserStatus;
+import com.laundreader.domain.entity.user.User;
+import com.laundreader.domain.type.user.UserStatus;
 
 import lombok.Getter;
 

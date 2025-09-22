@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.laundreader.domain.user.entity.User;
+import com.laundreader.domain.entity.user.User;
 import com.laundreader.userapi._core.security.auth.PrincipalDetails;
 import com.laundreader.userapi._core.security.jwt.response.TokenResponse;
 import com.laundreader.userapi._core.security.jwt.service.JwtCookieService;

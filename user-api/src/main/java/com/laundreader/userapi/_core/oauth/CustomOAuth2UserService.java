@@ -10,10 +10,10 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.laundreader.domain.user.entity.User;
-import com.laundreader.domain.user.repository.UserRepository;
-import com.laundreader.domain.user.type.Provider;
-import com.laundreader.domain.user.type.UserStatus;
+import com.laundreader.domain.entity.user.User;
+import com.laundreader.domain.repository.user.UserRepository;
+import com.laundreader.domain.type.user.Provider;
+import com.laundreader.domain.type.user.UserStatus;
 import com.laundreader.userapi._core.oauth.userInfo.OAuth2UserInfo;
 import com.laundreader.userapi._core.oauth.userInfo.OAuth2UserInfoFactory;
 import com.laundreader.userapi._core.security.auth.PrincipalDetails;

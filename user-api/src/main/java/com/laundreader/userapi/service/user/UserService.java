@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.laundreader.domain.user.entity.User;
-import com.laundreader.domain.user.repository.UserRepository;
-import com.laundreader.domain.withdrawLog.entity.WithdrawLog;
-import com.laundreader.domain.withdrawLog.repository.WithdrawLogRepository;
+import com.laundreader.domain.entity.user.User;
+import com.laundreader.domain.entity.withdrawLog.WithdrawLog;
+import com.laundreader.domain.repository.user.UserRepository;
+import com.laundreader.domain.repository.withdrawLog.WithdrawLogRepository;
 import com.laundreader.userapi._core.security.jwt.service.JwtTokenService;
 import com.laundreader.userapi.response.user.UserMeResponse;
 

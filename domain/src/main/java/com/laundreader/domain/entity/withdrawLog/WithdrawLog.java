@@ -1,4 +1,4 @@
-package com.laundreader.domain.withdrawLog.entity;
+package com.laundreader.domain.entity.withdrawLog;
 
 import java.time.LocalDateTime;
 

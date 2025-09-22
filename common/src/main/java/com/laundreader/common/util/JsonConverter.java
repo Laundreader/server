@@ -2,6 +2,7 @@ package com.laundreader.common.util;
 
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.exception.Exception500;
 
@@ -32,5 +33,14 @@ public class JsonConverter {
 			throw new Exception500("jsonToObject 파싱 오류");
 		}
 		return obj;
+	}
+
+	public <T> T jsonToCollection(String json, TypeReference<T> typeRef) {
+		try {
+			return objectMapper.readValue(json, typeRef);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("jsonToObject(TypeReference) 파싱 오류", e);
+		}
 	}
 }

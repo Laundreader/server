@@ -6,9 +6,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.laundreader.common.error.exception.Exception404;
-import com.laundreader.domain.user.entity.User;
-import com.laundreader.domain.user.repository.UserRepository;
-import com.laundreader.domain.user.type.UserStatus;
+import com.laundreader.domain.entity.user.User;
+import com.laundreader.domain.repository.user.UserRepository;
+import com.laundreader.domain.type.user.UserStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

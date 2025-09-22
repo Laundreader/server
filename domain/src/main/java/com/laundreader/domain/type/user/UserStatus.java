@@ -1,4 +1,4 @@
-package com.laundreader.domain.user.type;
+package com.laundreader.domain.type.user;
 
 public enum UserStatus {
 	ACTIVE,

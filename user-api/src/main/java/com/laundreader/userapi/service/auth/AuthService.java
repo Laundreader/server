@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service;
 
 import com.laundreader.common.error.exception.Exception400;
 import com.laundreader.common.error.exception.Exception404;
-import com.laundreader.domain.user.entity.User;
-import com.laundreader.domain.user.repository.UserRepository;
-import com.laundreader.domain.user.type.UserStatus;
+import com.laundreader.domain.entity.user.User;
+import com.laundreader.domain.repository.user.UserRepository;
+import com.laundreader.domain.type.user.UserStatus;
 import com.laundreader.userapi._core.security.jwt.JwtTokenProvider;
 import com.laundreader.userapi._core.security.jwt.response.TokenResponse;
 import com.laundreader.userapi._core.security.jwt.service.JwtTokenService;

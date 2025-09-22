@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.laundreader.common.redis.RedisService;
-import com.laundreader.domain.user.entity.User;
+import com.laundreader.domain.entity.user.User;
 import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi._core.security.jwt.JwtTokenProvider;
 import com.laundreader.userapi._core.security.jwt.response.TokenResponse;

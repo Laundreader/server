@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.laundreader.common.util.ApiUtils;
-import com.laundreader.domain.user.entity.User;
+import com.laundreader.domain.entity.user.User;
 import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi._core.security.auth.PrincipalDetails;
 import com.laundreader.userapi._core.security.jwt.service.JwtCookieService;

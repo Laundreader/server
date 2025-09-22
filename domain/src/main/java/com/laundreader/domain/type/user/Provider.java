@@ -1,4 +1,4 @@
-package com.laundreader.domain.user.type;
+package com.laundreader.domain.type.user;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

@@ -31,7 +31,7 @@ public class AuthController {
 
 	@PostMapping("/reissue")
 	public ResponseEntity<Object> reissue(
-		@CookieValue(AppConstants.ACCESS_TOKEN_NAME_PREFIX) String oldAccessToken,
+		@CookieValue(value = AppConstants.ACCESS_TOKEN_NAME_PREFIX, required = false) String oldAccessToken,
 		@CookieValue(AppConstants.REFRESH_TOKEN_NAME_PREFIX) String oldRefreshToken
 	) {
 		// 토큰 재발행

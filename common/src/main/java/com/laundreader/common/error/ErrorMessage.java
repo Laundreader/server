@@ -12,4 +12,5 @@ public class ErrorMessage {
 	public static final String OPEN_WEATHER_REQUEST_FAILED = "OpenWeather 요청 실패";
 	public static final String OPEN_WEATHER_RESPONSE_PARSING_FAILED = "OpenWeather 응답 파싱 실패";
 
+	public static final String NOT_SUPPORTED_EXTENSION = "지원하지 않는 확장자입니다.";
 }

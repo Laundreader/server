@@ -3,8 +3,8 @@ package com.laundreader.userapi.request.laundry;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
 import com.laundreader.userapi.dto.laundry.LaundryDTO;
-import com.laundreader.userapi.dto.laundry.LaundrySymbolDTO;
 
 import lombok.Getter;
 

@@ -15,9 +15,9 @@ CREATE TABLE laundry_tb (
     -- 솔루션 배열 JSON 저장
     solutions TEXT,
     -- 이미지 URL
-    label_url VARCHAR(512),
-    clothes_url VARCHAR(512),
-    thumbnail_url VARCHAR(512),
+    label_image_key VARCHAR(255),
+    clothes_image_key VARCHAR(255),
+    thumbnail_image_key VARCHAR(255),
     -- 사용자 FK
     user_id BIGINT NOT NULL,
     CONSTRAINT fk_laundry_user FOREIGN KEY (user_id) REFERENCES user_tb(id)

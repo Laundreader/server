@@ -55,7 +55,7 @@ public class NcpStorageService {
 		}
 	}
 
-	public String generateSignedUrl(String bucketName, String key, long expirationSeconds) {
+	public String generateGetPresignedUrl(String bucketName, String key, long expirationSeconds) {
 		try {
 			// 서명된 URL 생성 요청 설정
 			GetObjectRequest getObjectRequest = GetObjectRequest.builder()

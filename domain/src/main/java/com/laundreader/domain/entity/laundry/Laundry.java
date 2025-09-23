@@ -48,7 +48,7 @@ public class Laundry {
 	private String type;
 
 	@Column(nullable = false)
-	private boolean hasPrintOrTrims;
+	private Boolean hasPrintOrTrims;
 
 	// 추가 정보 배열
 	@Column(columnDefinition = "TEXT")

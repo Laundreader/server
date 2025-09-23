@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,13 +15,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
 import com.laundreader.common.error.exception.Exception400;
+import com.laundreader.common.error.exception.Exception404;
 import com.laundreader.common.error.exception.Exception500;
+import com.laundreader.common.redis.RedisService;
 import com.laundreader.common.util.Base64Extractor;
 import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
 import com.laundreader.domain.entity.laundry.Laundry;
 import com.laundreader.domain.entity.user.User;
 import com.laundreader.domain.repository.laundry.LaundryRepository;
 import com.laundreader.external.NCPObjectStorage.NcpStorageService;
+import com.laundreader.external.NCPObjectStorage.PresignedUrlCache;
 import com.laundreader.external.clova.dto.HamperSolutionDTO;
 import com.laundreader.external.clova.dto.LaundryAnalysisDTO;
 import com.laundreader.external.clova.dto.SingleSolutionDTO;
@@ -30,8 +34,10 @@ import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi.dto.image.ImageDTO;
 import com.laundreader.userapi.dto.laundry.HamperDTO;
 import com.laundreader.userapi.dto.laundry.LaundryDTO;
+import com.laundreader.userapi.dto.laundry.LaundryImageDTO;
 import com.laundreader.userapi.response.laundry.HamperSolutionResponse;
 import com.laundreader.userapi.response.laundry.LaundryAnalysisResponse;
+import com.laundreader.userapi.response.laundry.LaundryGetResponse;
 import com.laundreader.userapi.response.laundry.LaundrySaveResponse;
 import com.laundreader.userapi.response.laundry.SingleSolutionResponse;
 import com.laundreader.userapi.type.LaundrySymbolCode;
@@ -47,7 +53,9 @@ public class LaundryService {
 	private final ClovaStudioService clovaStudioService;
 	private final ObjectMapper objectMapper;
 	private final NcpStorageService ncpStorageService;
+	private final PresignedUrlCache presignedUrlCache;
 	private final LaundryRepository laundryRepository;
+	private final RedisService redisService;
 
 	public LaundryAnalysisResponse getLaundryAnalysis(ImageDTO labelImage, ImageDTO clothesImage) {
 		// OCR 텍스트 추출
@@ -149,6 +157,16 @@ public class LaundryService {
 		}
 	}
 
+	@Cacheable(value = "laundry", key = "#laundryId + ':' + #userId")
+	public LaundryGetResponse getLaundry(Long laundryId, Long userId) {
+		Laundry laundry = (Laundry)laundryRepository.findByIdAndUserId(laundryId, userId)
+			.orElseThrow(() -> new Exception404("Laundry not found or not yours"));
+
+		return LaundryGetResponse.toBuilderWithoutImage(laundry)
+			.image(buildImageDTO(laundry))
+			.build();
+	}
+
 	public HamperSolutionResponse getHamperSolution(HamperDTO hamper) {
 		String inputData = null;
 		try {
@@ -200,6 +218,20 @@ public class LaundryService {
 
 		ncpStorageService.uploadFile(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, file, key);
 		return key;
+	}
+
+	private LaundryImageDTO buildImageDTO(Laundry laundry) {
+		return LaundryImageDTO.builder()
+			.label(getPresignedUrlWithCache(laundry.getLabelImageKey()))
+			.clothes(getPresignedUrlWithCache(laundry.getClothesImageKey()))
+			.build();
+	}
+
+	private String getPresignedUrlWithCache(String key) {
+		if (key == null)
+			return null;
+		return presignedUrlCache.getOrGenerate(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, key,
+			AppConstants.LAUNDRY_IMAGE_TTL);
 	}
 
 }

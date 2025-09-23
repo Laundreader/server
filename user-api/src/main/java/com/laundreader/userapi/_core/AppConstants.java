@@ -10,6 +10,8 @@ public final class AppConstants {
 
 	// Object Storage 관련
 	public static final String LAUNDRY_IMAGE_BUCKET_NAME = "laundreader-laundry-images";
+	public static final long LAUNDRY_IMAGE_TTL = 15 * 60;
+	public static final long LAUNDRY_THUMBNAIL_TTL = 30 * 60;
 
 	private AppConstants() {
 	} // 인스턴스화 방지

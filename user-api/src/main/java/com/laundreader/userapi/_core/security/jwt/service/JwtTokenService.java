@@ -30,7 +30,9 @@ public class JwtTokenService {
 
 	public void invalidateTokens(String accessToken, String refreshToken) {
 		// accessToken 블랙리스트 등록
-		addToBlacklist(accessToken);
+		if (accessToken != null) {
+			addToBlacklist(accessToken);
+		}
 		// refreshToken 삭제
 		deleteRefreshToken(refreshToken);
 	}

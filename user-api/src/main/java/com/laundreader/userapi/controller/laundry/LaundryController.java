@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -24,6 +26,7 @@ import com.laundreader.userapi.request.laundry.LaundrySaveRequest;
 import com.laundreader.userapi.request.laundry.SingleSolutionRequest;
 import com.laundreader.userapi.response.laundry.HamperSolutionResponse;
 import com.laundreader.userapi.response.laundry.LaundryAnalysisResponse;
+import com.laundreader.userapi.response.laundry.LaundryGetResponse;
 import com.laundreader.userapi.response.laundry.LaundrySaveResponse;
 import com.laundreader.userapi.response.laundry.SingleSolutionResponse;
 import com.laundreader.userapi.service.laundry.LaundryService;
@@ -77,6 +80,17 @@ public class LaundryController {
 	) {
 		User user = principal.getUser();
 		LaundrySaveResponse response = laundryService.saveLaundry(request.toLaundryDTO(), labelFile, clothesFile, user);
+		return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@GetMapping("/laundry/{id}")
+	public ResponseEntity<ApiUtils.ApiResult<LaundryGetResponse>> getLaundry(
+		@PathVariable("id") Long laundryId,
+		@AuthenticationPrincipal PrincipalDetails principal
+	) {
+		User user = principal.getUser();
+		LaundryGetResponse response = laundryService.getLaundry(laundryId, user.getId());
 		return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
 	}
 

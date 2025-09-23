@@ -8,6 +8,10 @@ spring:
   profiles:
     active: local
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST}

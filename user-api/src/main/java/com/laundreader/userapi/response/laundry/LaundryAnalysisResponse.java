@@ -2,7 +2,7 @@ package com.laundreader.userapi.response.laundry;
 
 import java.util.List;
 
-import com.laundreader.userapi.dto.laundry.LaundrySymbolDTO;
+import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

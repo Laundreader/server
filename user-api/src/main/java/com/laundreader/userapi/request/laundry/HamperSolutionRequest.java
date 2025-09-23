@@ -2,10 +2,10 @@ package com.laundreader.userapi.request.laundry;
 
 import java.util.List;
 
+import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
+import com.laundreader.domain.dto.laundry.SolutionDTO;
 import com.laundreader.userapi.dto.laundry.HamperDTO;
 import com.laundreader.userapi.dto.laundry.LaundryDTO;
-import com.laundreader.userapi.dto.laundry.LaundrySymbolDTO;
-import com.laundreader.userapi.dto.laundry.SolutionDTO;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

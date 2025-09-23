@@ -4,25 +4,35 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.laundreader.common.error.ErrorMessage;
+import com.laundreader.common.error.exception.Exception400;
 import com.laundreader.common.error.exception.Exception500;
 import com.laundreader.common.util.Base64Extractor;
+import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
+import com.laundreader.domain.entity.laundry.Laundry;
+import com.laundreader.domain.entity.user.User;
+import com.laundreader.domain.repository.laundry.LaundryRepository;
+import com.laundreader.external.NCPObjectStorage.NcpStorageService;
 import com.laundreader.external.clova.dto.HamperSolutionDTO;
 import com.laundreader.external.clova.dto.LaundryAnalysisDTO;
 import com.laundreader.external.clova.dto.SingleSolutionDTO;
 import com.laundreader.external.clova.service.ClovaOcrService;
 import com.laundreader.external.clova.service.ClovaStudioService;
+import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi.dto.image.ImageDTO;
 import com.laundreader.userapi.dto.laundry.HamperDTO;
 import com.laundreader.userapi.dto.laundry.LaundryDTO;
-import com.laundreader.userapi.dto.laundry.LaundrySymbolDTO;
 import com.laundreader.userapi.response.laundry.HamperSolutionResponse;
 import com.laundreader.userapi.response.laundry.LaundryAnalysisResponse;
+import com.laundreader.userapi.response.laundry.LaundrySaveResponse;
 import com.laundreader.userapi.response.laundry.SingleSolutionResponse;
 import com.laundreader.userapi.type.LaundrySymbolCode;
 
@@ -33,10 +43,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class LaundryService {
-
 	private final ClovaOcrService clovaOcrService;
 	private final ClovaStudioService clovaStudioService;
 	private final ObjectMapper objectMapper;
+	private final NcpStorageService ncpStorageService;
+	private final LaundryRepository laundryRepository;
 
 	public LaundryAnalysisResponse getLaundryAnalysis(ImageDTO labelImage, ImageDTO clothesImage) {
 		// OCR 텍스트 추출
@@ -90,6 +101,54 @@ public class LaundryService {
 		);
 	}
 
+	@Transactional
+	public LaundrySaveResponse saveLaundry(LaundryDTO dto, MultipartFile labelFile,
+		MultipartFile clothesFile, User user) {
+
+		String labelKey = null;
+		String clothesKey = null;
+
+		try {
+			Laundry.LaundryBuilder builder = Laundry.builder()
+				.materials(dto.getMaterials())
+				.color(dto.getColor())
+				.type(dto.getType())
+				.hasPrintOrTrims(dto.getHasPrintOrTrims())
+				.additionalInfo(dto.getAdditionalInfo())
+				.laundrySymbols(dto.getLaundrySymbols())
+				.solutions(dto.getSolutions())
+				.user(user);
+
+			// ----------------- 이미지 업로드 -----------------
+			if (labelFile != null && !labelFile.isEmpty()) {
+				labelKey = uploadLaundryImage(labelFile, user.getId(), "label");
+				builder.labelImageKey(labelKey);
+			}
+
+			if (clothesFile != null && !clothesFile.isEmpty()) {
+				clothesKey = uploadLaundryImage(clothesFile, user.getId(), "clothes");
+				builder.clothesImageKey(clothesKey);
+			}
+
+			// 썸네일 결정 (clothes > label > null)
+			String thumbnailKey = (clothesKey != null) ? clothesKey : labelKey;
+			builder.thumbnailImageKey(thumbnailKey);
+
+			Laundry laundry = laundryRepository.save(builder.build());
+
+			return new LaundrySaveResponse(laundry.getId());
+		} catch (Exception e) {
+			// 업로드된 파일이 있다면 삭제
+			if (labelKey != null) {
+				ncpStorageService.deleteFile(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, labelKey);
+			}
+			if (clothesKey != null) {
+				ncpStorageService.deleteFile(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, clothesKey);
+			}
+			throw e; // 원래 예외 다시 던짐
+		}
+	}
+
 	public HamperSolutionResponse getHamperSolution(HamperDTO hamper) {
 		String inputData = null;
 		try {
@@ -124,6 +183,23 @@ public class LaundryService {
 					.build()
 				)
 				.toList();
+	}
+
+	private String uploadLaundryImage(MultipartFile file, Long userId, String folder) {
+		// 확장자 처리
+		String originalFilename = file.getOriginalFilename();
+		String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+
+		String allowedExtensions = "jpeg";
+		if (!allowedExtensions.equals(fileExtension)) {
+			throw new Exception400("file", ErrorMessage.NOT_SUPPORTED_EXTENSION);
+		}
+
+		String key = "user-" + userId + "/" + folder + "/"
+			+ UUID.randomUUID() + "." + fileExtension;
+
+		ncpStorageService.uploadFile(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, file, key);
+		return key;
 	}
 
 }

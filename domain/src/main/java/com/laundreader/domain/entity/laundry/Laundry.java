@@ -65,9 +65,9 @@ public class Laundry {
 	@Convert(converter = SolutionConverter.class)
 	private List<SolutionDTO> solutions;    // List<SolutionDTO> <-> JSON
 
-	private String labelUrl;
-	private String clothesUrl;
-	private String thumbnailUrl;
+	private String labelImageKey;
+	private String clothesImageKey;
+	private String thumbnailImageKey;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)

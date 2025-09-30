@@ -2,6 +2,7 @@ package com.laundreader.userapi.service.laundry;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -167,6 +168,31 @@ public class LaundryService {
 			.build();
 	}
 
+	@Transactional
+	public void deleteLaundry(Long laundryId, Long userId) {
+		Laundry laundry = (Laundry)laundryRepository.findByIdAndUserId(laundryId, userId)
+			.orElseThrow(() -> new Exception404("Laundry not found or not yours"));
+
+		// DB 삭제 먼저
+		laundryRepository.delete(laundry);
+
+		// 이미지 삭제 시도
+		List<String> fileKeys = List.of(
+			laundry.getLabelImageKey(),
+			laundry.getClothesImageKey()
+		).stream().filter(Objects::nonNull).toList();
+
+		for (String key : fileKeys) {
+			try {
+				ncpStorageService.deleteFile(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, key);
+			} catch (Exception e) {
+				// 실패 시 Redis 큐에 적재
+				redisService.appendToListLeft(AppConstants.LAUNDRY_DELETE_QUEUE, key);
+				log.warn("Laundry 이미지 삭제 실패, Redis 큐에 적재: {}", key);
+			}
+		}
+	}
+
 	public HamperSolutionResponse getHamperSolution(HamperDTO hamper) {
 		String inputData = null;
 		try {
@@ -233,5 +259,4 @@ public class LaundryService {
 		return presignedUrlCache.getOrGenerate(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, key,
 			AppConstants.LAUNDRY_IMAGE_TTL);
 	}
-
 }

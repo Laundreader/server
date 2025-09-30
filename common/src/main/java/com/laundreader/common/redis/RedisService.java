@@ -32,12 +32,12 @@ public class RedisService {
 		redisTemplate.opsForValue().set(key, jsonConverter.objectToJson(obj), Duration.ofMillis(timeoutMs));
 	}
 
-	public void setString(String key, String value, long timeoutMs) {
-		redisTemplate.opsForValue().set(key, value, Duration.ofMillis(timeoutMs));
-	}
-
 	public String getString(String key) {
 		return redisTemplate.opsForValue().get(key);
+	}
+
+	public void setString(String key, String value, long timeoutMs) {
+		redisTemplate.opsForValue().set(key, value, Duration.ofMillis(timeoutMs));
 	}
 
 	public List<String> getList(String key) {
@@ -45,7 +45,19 @@ public class RedisService {
 			.orElse(new ArrayList<>());
 	}
 
-	public void appendToList(String key, String value) {
+	public String leftPop(String key) {
+		return redisTemplate.opsForList().leftPop(key);
+	}
+
+	public String rightPop(String key) {
+		return redisTemplate.opsForList().rightPop(key);
+	}
+
+	public void appendToListLeft(String key, String value) {
+		redisTemplate.opsForList().leftPush(key, value);
+	}
+
+	public void appendToListRight(String key, String value) {
 		redisTemplate.opsForList().rightPush(key, value);
 	}
 

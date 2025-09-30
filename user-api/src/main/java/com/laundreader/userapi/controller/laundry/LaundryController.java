@@ -21,11 +21,9 @@ import com.laundreader.common.util.ApiUtils;
 import com.laundreader.domain.entity.user.User;
 import com.laundreader.userapi._core.security.auth.PrincipalDetails;
 import com.laundreader.userapi.dto.image.ImageDTO;
-import com.laundreader.userapi.request.laundry.HamperSolutionRequest;
 import com.laundreader.userapi.request.laundry.LaundryAnalysisRequest;
 import com.laundreader.userapi.request.laundry.LaundrySaveRequest;
 import com.laundreader.userapi.request.laundry.SingleSolutionRequest;
-import com.laundreader.userapi.response.laundry.HamperSolutionResponse;
 import com.laundreader.userapi.response.laundry.LaundryAnalysisResponse;
 import com.laundreader.userapi.response.laundry.LaundryGetResponse;
 import com.laundreader.userapi.response.laundry.LaundrySaveResponse;
@@ -104,13 +102,5 @@ public class LaundryController {
 		User user = principal.getUser();
 		laundryService.deleteLaundry(laundryId, user.getId());
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
-
-	@PostMapping("/hamper/solution")
-	public ResponseEntity<ApiUtils.ApiResult<HamperSolutionResponse>> hamperSolution(
-		@Valid @RequestBody HamperSolutionRequest request
-	) {
-		HamperSolutionResponse response = laundryService.getHamperSolution(request.toHamperDTO());
-		return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
 	}
 }

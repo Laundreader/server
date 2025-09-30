@@ -27,17 +27,14 @@ import com.laundreader.domain.entity.user.User;
 import com.laundreader.domain.repository.laundry.LaundryRepository;
 import com.laundreader.external.NCPObjectStorage.NcpStorageService;
 import com.laundreader.external.NCPObjectStorage.PresignedUrlCache;
-import com.laundreader.external.clova.dto.HamperSolutionDTO;
 import com.laundreader.external.clova.dto.LaundryAnalysisDTO;
 import com.laundreader.external.clova.dto.SingleSolutionDTO;
 import com.laundreader.external.clova.service.ClovaOcrService;
 import com.laundreader.external.clova.service.ClovaStudioService;
 import com.laundreader.userapi._core.AppConstants;
 import com.laundreader.userapi.dto.image.ImageDTO;
-import com.laundreader.userapi.dto.laundry.HamperDTO;
 import com.laundreader.userapi.dto.laundry.LaundryDTO;
 import com.laundreader.userapi.dto.laundry.LaundryImageDTO;
-import com.laundreader.userapi.response.laundry.HamperSolutionResponse;
 import com.laundreader.userapi.response.laundry.LaundryAnalysisResponse;
 import com.laundreader.userapi.response.laundry.LaundryGetResponse;
 import com.laundreader.userapi.response.laundry.LaundrySaveResponse;
@@ -198,27 +195,6 @@ public class LaundryService {
 				log.warn("Laundry 이미지 삭제 실패, Redis 큐에 적재: {}", key);
 			}
 		}
-	}
-
-	public HamperSolutionResponse getHamperSolution(HamperDTO hamper) {
-		String inputData = null;
-		try {
-			inputData = objectMapper.writeValueAsString(hamper);
-		} catch (JsonProcessingException e) {
-			log.error("빨래바구니 세탁 솔루션 input String 변환 실패: {}", e.getMessage());
-			throw new Exception500(ErrorMessage.INTERNAL_ERROR);
-		}
-
-		HamperSolutionDTO clovaResponse = clovaStudioService.laundrySolutionHamper(
-			inputData);
-
-		return new HamperSolutionResponse(
-			clovaResponse.getGroups().stream()
-				.map(g -> new HamperSolutionResponse.groupDTO(
-					g.getId(), g.getName(), g.getSolution(), g.getLaundryIds()
-				))
-				.toList()
-		);
 	}
 
 	private List<LaundrySymbolDTO> filterLaundrySymbols(

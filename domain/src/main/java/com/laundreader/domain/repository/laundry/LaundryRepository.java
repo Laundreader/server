@@ -10,5 +10,7 @@ import com.laundreader.domain.entity.laundry.Laundry;
 public interface LaundryRepository extends JpaRepository<Laundry, Long> {
 	Optional<Object> findByIdAndUserId(Long laundryId, Long userId);
 
-	List<Laundry> findAllByUser_Id(Long userId);
+	List<Laundry> findAllByUserId(Long userId);
+
+	List<Laundry> findAllByIdInAndUserId(List<Long> laundryIds, Long userId);
 }

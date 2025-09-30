@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
 import com.laundreader.domain.dto.laundry.SolutionDTO;
+import com.laundreader.domain.entity.laundry.Laundry;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import lombok.Getter;
 @Builder
 @Getter
 public class LaundryDTO {
-	Integer id; // 선택적 필드
+	private final Long id;
 	List<String> materials;
 	String color;
 	String type;
@@ -20,11 +21,17 @@ public class LaundryDTO {
 	List<LaundrySymbolDTO> laundrySymbols;
 	List<SolutionDTO> solutions;
 
-	public static LaundryDTOBuilder withIdBuilder(int id) {
-		return builder().id(id);
-	}
-
-	public static LaundryDTOBuilder withoutIdBuilder() {
-		return builder();
+	// 엔티티 → DTO 변환
+	public static LaundryDTO fromEntity(Laundry laundry) {
+		return LaundryDTO.builder()
+			.id(laundry.getId())
+			.materials(laundry.getMaterials())
+			.color(laundry.getColor())
+			.type(laundry.getType())
+			.hasPrintOrTrims(laundry.getHasPrintOrTrims())
+			.additionalInfo(laundry.getAdditionalInfo())
+			.laundrySymbols(laundry.getLaundrySymbols())
+			.solutions(laundry.getSolutions())
+			.build();
 	}
 }

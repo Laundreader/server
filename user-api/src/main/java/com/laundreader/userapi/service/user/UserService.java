@@ -20,6 +20,7 @@ import com.laundreader.domain.repository.user.UserRepository;
 import com.laundreader.domain.repository.withdrawLog.WithdrawLogRepository;
 import com.laundreader.external.naverOAuth.NaverTokenService;
 import com.laundreader.userapi._core.security.jwt.service.JwtTokenService;
+import com.laundreader.userapi.response.user.NicknameChangeResponse;
 import com.laundreader.userapi.response.user.UserMeResponse;
 import com.laundreader.userapi.service.laundry.LaundryService;
 
@@ -36,6 +37,16 @@ public class UserService {
 	private final JwtTokenService tokenService;
 	private final NaverTokenService naverTokenService;
 	private final ApplicationEventPublisher applicationEventPublisher;
+
+	public UserMeResponse getUserMe(User user) {
+		return new UserMeResponse(user.getEmail(), user.getProvider().name(), user.getNickname());
+	}
+
+	public NicknameChangeResponse changeNickname(User user, String newNickname) {
+		user.setNickname(newNickname);
+		userRepository.save(user);
+		return new NicknameChangeResponse(user.getNickname());
+	}
 
 	@Transactional
 	public void withdraw(User user, String accessToken, String refreshToken) {
@@ -75,10 +86,6 @@ public class UserService {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleWithdraw(UserWithdrawnEvent event) {
 		tokenService.invalidateTokens(event.accessToken(), event.refreshToken());
-	}
-
-	public UserMeResponse getUserMe(User user) {
-		return new UserMeResponse(user.getEmail(), user.getProvider().name(), user.getNickname());
 	}
 
 	public record UserWithdrawnEvent(String email, String accessToken, String refreshToken) {

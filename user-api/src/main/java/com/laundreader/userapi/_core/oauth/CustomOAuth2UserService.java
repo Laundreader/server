@@ -35,18 +35,16 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 		Map<String, Object> attributes = oAuth2User.getAttributes();
 		OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
 
-		// 이메일, 연령대 필수
-		// 닉네임, 성별 선택
+		// 이메일 필수
+		// 닉네임 선택
 		String email = userInfo.getEmail();
-		String ageRange = userInfo.getAgeRange();
 		String nickname = userInfo.getNickname();
-		String gender = userInfo.getGender();
 
 		// 필수 정보 체크
-		if (email == null || ageRange == null) {
+		if (email == null) {
 			throw new OAuth2AuthenticationException(
 				new OAuth2Error("502"),
-				"Bad Gateway: 필수 정보(이메일, 연령대)가 없습니다."
+				"Bad Gateway: 필수 정보(이메일)가 없습니다."
 			);
 		}
 
@@ -65,9 +63,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 			.orElseGet(() -> {
 				User newUser = User.builder()
 					.email(email)
-					.ageRange(ageRange)
 					.nickname(nickname)
-					.gender(gender)
 					.provider(Provider.valueOf(registrationId.toUpperCase()))
 					.build();
 				return userRepository.save(newUser);

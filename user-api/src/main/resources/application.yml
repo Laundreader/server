@@ -32,7 +32,7 @@ spring:
             client-secret: ${oauth2.naver.client.secret}
             redirect-uri: https://api.laundreader.com/login/oauth2/code/naver
             authorization-grant-type: authorization_code
-            scope: email, gender, age, name
+            scope: email, name
             client-name: naver
         #          kakao:
         #            client-id: ${oauth2.kakao.client.id}

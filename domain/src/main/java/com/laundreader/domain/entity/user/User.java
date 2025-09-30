@@ -45,14 +45,8 @@ public class User {
 	@Column(nullable = false, length = 255, unique = true)
 	private String email;
 
-	@Column(nullable = false, length = 10)
-	private String ageRange; // 필수
-
 	@Column(nullable = false, length = 30)
 	private String nickname; // 선택, 미제공시 임의 지정
-
-	@Column(length = 10)
-	private String gender;   // 선택
 
 	@Column(nullable = false, length = 10)
 	@Enumerated(EnumType.STRING)

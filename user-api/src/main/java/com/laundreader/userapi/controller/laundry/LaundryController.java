@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,6 +93,17 @@ public class LaundryController {
 		User user = principal.getUser();
 		LaundryGetResponse response = laundryService.getLaundry(laundryId, user.getId());
 		return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@DeleteMapping("/laundry/{id}")
+	public ResponseEntity<Void> deleteLaundry(
+		@PathVariable("id") Long laundryId,
+		@AuthenticationPrincipal PrincipalDetails principal
+	) {
+		User user = principal.getUser();
+		laundryService.deleteLaundry(laundryId, user.getId());
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@PostMapping("/hamper/solution")

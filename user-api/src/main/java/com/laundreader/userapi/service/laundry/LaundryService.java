@@ -171,16 +171,20 @@ public class LaundryService {
 			.build();
 	}
 
-	@Transactional
-	@CacheEvict(value = "hamper", key = "#userId")
 	public void deleteLaundry(Long laundryId, Long userId) {
 		Laundry laundry = (Laundry)laundryRepository.findByIdAndUserId(laundryId, userId)
 			.orElseThrow(() -> new Exception404("Laundry not found or not yours"));
 
-		// DB 삭제 먼저
+		deleteLaundryInternal(laundry);
+	}
+
+	@Transactional
+	@CacheEvict(value = "hamper", key = "#laundry.user.id")
+	public void deleteLaundryInternal(Laundry laundry) {
+		// DB 삭제
 		laundryRepository.delete(laundry);
 
-		// 이미지 삭제 시도
+		// 이미지 삭제
 		List<String> fileKeys = List.of(
 			laundry.getLabelImageKey(),
 			laundry.getClothesImageKey()
@@ -190,7 +194,6 @@ public class LaundryService {
 			try {
 				ncpStorageService.deleteFile(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, key);
 			} catch (Exception e) {
-				// 실패 시 Redis 큐에 적재
 				redisService.appendToListLeft(AppConstants.LAUNDRY_DELETE_QUEUE, key);
 				log.warn("Laundry 이미지 삭제 실패, Redis 큐에 적재: {}", key);
 			}

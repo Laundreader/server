@@ -11,13 +11,16 @@ import com.laundreader.domain.type.user.Provider;
 import com.laundreader.domain.type.user.Role;
 import com.laundreader.domain.type.user.UserStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -37,7 +40,7 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, length = 255)
+	@Column(nullable = false, length = 255, unique = true)
 	private String email;
 
 	@Column(nullable = false, length = 10)
@@ -68,6 +71,9 @@ public class User {
 
 	@UpdateTimestamp
 	private Timestamp updatedAt;
+
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private UserOAuthToken oAuthToken;
 
 	public void withdraw() {
 		this.status = UserStatus.WITHDRAW;

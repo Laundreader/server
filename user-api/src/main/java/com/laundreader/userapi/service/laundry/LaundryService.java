@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,7 @@ public class LaundryService {
 	private final PresignedUrlCache presignedUrlCache;
 	private final LaundryRepository laundryRepository;
 	private final RedisService redisService;
+	private final HamperService hamperService;
 
 	public LaundryAnalysisResponse getLaundryAnalysis(ImageDTO labelImage, ImageDTO clothesImage) {
 		// OCR 텍스트 추출
@@ -143,7 +145,11 @@ public class LaundryService {
 			String thumbnailKey = (clothesKey != null) ? clothesKey : labelKey;
 			builder.thumbnailImageKey(thumbnailKey);
 
+			// 1. Laundry 저장
 			Laundry laundry = laundryRepository.save(builder.build());
+
+			// 2. Hamper 캐시 갱신
+			hamperService.updateHamperCache(user.getId());
 
 			return new LaundrySaveResponse(laundry.getId());
 		} catch (Exception e) {
@@ -169,6 +175,7 @@ public class LaundryService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "hamper", key = "#userId")
 	public void deleteLaundry(Long laundryId, Long userId) {
 		Laundry laundry = (Laundry)laundryRepository.findByIdAndUserId(laundryId, userId)
 			.orElseThrow(() -> new Exception404("Laundry not found or not yours"));

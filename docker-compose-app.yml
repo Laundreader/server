@@ -5,7 +5,7 @@ services:
     image: chaewon012/laundreader-dev:latest
     container_name: user-api-dev
     ports:
-      - "8081:8081"
+      - "8081:8080"
     env_file:
       - ./secure-submodule/env/compose-prod.env
     restart: always

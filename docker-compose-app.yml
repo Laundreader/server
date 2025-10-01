@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  app:
+  app-dev:
     image: chaewon012/laundreader-dev:latest
     container_name: user-api-dev
     ports:
@@ -37,6 +37,6 @@ networks:
   laundreader:
     driver: bridge
 
-volumes:
-  prometheus_data:
-  grafana_data:
+#volumes:
+#  prometheus_data:
+#  grafana_data:

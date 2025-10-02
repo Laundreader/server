@@ -71,8 +71,8 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 		response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
 		// 토큰 및 닉네임 전달을 위한 redirect
-		String encodedNickName = URLEncoder.encode(user.getNickname(), StandardCharsets.UTF_8);
-		response.sendRedirect(REDIRECT_URI + "?success=true&nickName=" + encodedNickName);
+		String encodedNickname = URLEncoder.encode(user.getNickname(), StandardCharsets.UTF_8);
+		response.sendRedirect(REDIRECT_URI + "?success=true&nickname=" + encodedNickname);
 	}
 
 	/**

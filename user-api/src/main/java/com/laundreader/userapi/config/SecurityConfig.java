@@ -41,6 +41,9 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
+			.cors(cors -> cors
+				.configurationSource(corsConfigurationSource())
+			)
 			.csrf(csrf -> csrf.disable())  // CSRF 해제
 			.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // iframe 허용
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 거부

@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -58,6 +60,8 @@ public class LaundryService {
 	private final LaundryRepository laundryRepository;
 	private final RedisService redisService;
 	private final HamperService hamperService;
+	@Autowired
+	private ObjectProvider<LaundryService> selfProvider;
 
 	public LaundryAnalysisResponse getLaundryAnalysis(ImageDTO labelImage, ImageDTO clothesImage) {
 		// OCR 텍스트 추출
@@ -177,7 +181,7 @@ public class LaundryService {
 		Laundry laundry = (Laundry)laundryRepository.findByIdAndUserId(laundryId, userId)
 			.orElseThrow(() -> new Exception404("Laundry not found or not yours"));
 
-		deleteLaundryInternal(laundry);
+		selfProvider.getObject().deleteLaundryInternal(laundry); // 프록시 거치도록
 	}
 
 	@Transactional

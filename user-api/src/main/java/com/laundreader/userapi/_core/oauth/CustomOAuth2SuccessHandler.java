@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
-	private static final String REDIRECT_URI = "https://laundreader.com/auth/callback";
+	private static final String REDIRECT_URI = "http://localhost:5173/auth/callback";
 	private final JwtTokenService tokenService;
 	private final JwtCookieService jwtCookieService;
 	private final OAuth2AuthorizedClientService authorizedClientService;

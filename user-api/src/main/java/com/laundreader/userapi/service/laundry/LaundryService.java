@@ -182,8 +182,8 @@ public class LaundryService {
 
 	@Transactional
 	@Caching(evict = {
-		@CacheEvict(value = "hamper", key = "#laundry.user.id"),
-		@CacheEvict(value = "laundry", key = "#laundry.id + ':' + #laundry.user.id")
+		@CacheEvict(value = "hamper", key = "#laundry.user.id", beforeInvocation = true),
+		@CacheEvict(value = "laundry", key = "#laundry.id + ':' + #laundry.user.id", beforeInvocation = true)
 	})
 	public void deleteLaundryInternal(Laundry laundry) {
 		// DB 삭제

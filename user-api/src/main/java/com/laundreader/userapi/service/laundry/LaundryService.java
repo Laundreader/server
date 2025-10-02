@@ -6,9 +6,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -179,16 +181,21 @@ public class LaundryService {
 	}
 
 	@Transactional
-	@CacheEvict(value = "hamper", key = "#laundry.user.id")
+	@Caching(evict = {
+		@CacheEvict(value = "hamper", key = "#laundry.user.id"),
+		@CacheEvict(value = "laundry", key = "#laundry.id + ':' + #laundry.user.id")
+	})
 	public void deleteLaundryInternal(Laundry laundry) {
 		// DB 삭제
 		laundryRepository.delete(laundry);
 
 		// 이미지 삭제
-		List<String> fileKeys = List.of(
-			laundry.getLabelImageKey(),
-			laundry.getClothesImageKey()
-		).stream().filter(Objects::nonNull).toList();
+		List<String> fileKeys = Stream.of(
+				laundry.getLabelImageKey(),
+				laundry.getClothesImageKey()
+			)
+			.filter(Objects::nonNull)
+			.toList();
 
 		for (String key : fileKeys) {
 			try {

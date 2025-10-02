@@ -67,7 +67,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 		ResponseCookie refreshTokenCookie = jwtCookieService.createRefreshTokenCookie(tokens.getRefreshToken());
 
 		// HttpServletResponse에 쿠키 추가
-		response.setHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+		response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 		response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
 		// 토큰 및 닉네임 전달을 위한 redirect

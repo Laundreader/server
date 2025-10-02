@@ -35,8 +35,8 @@ public class HamperController {
 		@AuthenticationPrincipal PrincipalDetails principal
 	) {
 		User user = principal.getUser();
-		HamperGetResponse hamper = hamperService.getHamper(user.getId());
-		return new ResponseEntity<>(ApiUtils.success(hamper.getHamper().isEmpty() ? null : hamper), HttpStatus.OK);
+		HamperGetResponse response = hamperService.getHamper(user.getId());
+		return new ResponseEntity<>(ApiUtils.success(response), HttpStatus.OK);
 	}
 
 	@PreAuthorize("isAuthenticated()")

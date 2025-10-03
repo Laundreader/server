@@ -54,7 +54,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 		);
 
 		// Principal에서 User 가져오기
-		User user = ((PrincipalDetails)authentication.getPrincipal()).getUser();
+		PrincipalDetails principal = (PrincipalDetails)authentication.getPrincipal();
+		User user = principal.getUser();
+		boolean isFirstLogin = principal.isFirstLogin();
 
 		// DB에 social token 갱신
 		updateTokens(user, client);
@@ -72,7 +74,11 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
 		// 토큰 및 닉네임 전달을 위한 redirect
 		String encodedNickname = URLEncoder.encode(user.getNickname(), StandardCharsets.UTF_8);
-		response.sendRedirect(REDIRECT_URI + "?success=true&nickname=" + encodedNickname);
+		response.sendRedirect(REDIRECT_URI
+			+ "?success=true"
+			+ "&nickname=" + encodedNickname
+			+ "&firstLogin=" + isFirstLogin
+		);
 	}
 
 	/**

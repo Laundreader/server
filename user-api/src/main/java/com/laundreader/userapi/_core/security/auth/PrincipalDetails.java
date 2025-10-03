@@ -25,6 +25,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
 	private final User user;
 	private Map<String, Object> attributes;
+	private boolean firstLogin;
 
 	// 일반 로그인 생성자
 	public PrincipalDetails(User user) {
@@ -32,9 +33,10 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 	}
 
 	// OAuth2 로그인 생성자
-	public PrincipalDetails(User user, Map<String, Object> attributes) {
+	public PrincipalDetails(User user, Map<String, Object> attributes, boolean firstLogin) {
 		this.user = user;
 		this.attributes = attributes;
+		this.firstLogin = firstLogin;
 	}
 
 	@Override

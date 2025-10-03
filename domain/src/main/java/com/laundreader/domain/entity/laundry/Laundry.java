@@ -38,13 +38,14 @@ public class Laundry {
 	private Long id;
 
 	// 소재 배열
-	@Column(columnDefinition = "TEXT")
+	@Column(columnDefinition = "TEXT", nullable = false)
 	@Convert(converter = StringListConverter.class)
 	private List<String> materials;  // List<String> <-> JSON
 
+	@Column(nullable = false)
 	private String color;
 
-	@Column(name = "clothes_type")
+	@Column(name = "clothes_type", nullable = false)
 	private String type;
 
 	@Column(nullable = false)

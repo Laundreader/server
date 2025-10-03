@@ -72,7 +72,7 @@ public class LaundryController {
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/laundry")
 	public ResponseEntity<ApiUtils.ApiResult<LaundrySaveResponse>> saveLaundry(
-		@RequestPart("laundry") LaundrySaveRequest request,
+		@Valid @RequestPart("laundry") LaundrySaveRequest request,
 		@RequestPart(value = "label", required = false) MultipartFile labelFile,
 		@RequestPart(value = "clothes", required = false) MultipartFile clothesFile,
 		@AuthenticationPrincipal PrincipalDetails principal

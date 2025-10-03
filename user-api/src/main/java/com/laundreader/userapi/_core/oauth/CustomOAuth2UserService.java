@@ -1,6 +1,7 @@
 package com.laundreader.userapi._core.oauth;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -49,6 +50,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 		}
 
 		// DB 저장/조회
+		AtomicBoolean isFirstLogin = new AtomicBoolean(false);
 		User user = userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
 			.map(u -> {
 				// 이미 다른 provider로 가입된 경우
@@ -66,10 +68,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 					.nickname(nickname)
 					.provider(Provider.valueOf(registrationId.toUpperCase()))
 					.build();
+				isFirstLogin.set(true);
 				return userRepository.save(newUser);
 			});
 
-		return new PrincipalDetails(user, attributes);
+		return new PrincipalDetails(user, attributes, isFirstLogin.get());
 	}
 }
 

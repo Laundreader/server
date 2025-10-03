@@ -7,14 +7,25 @@ import com.laundreader.domain.dto.laundry.LaundrySymbolDTO;
 import com.laundreader.domain.dto.laundry.SolutionDTO;
 import com.laundreader.userapi.dto.laundry.LaundryDTO;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
 public class LaundrySaveRequest {
+	@NotEmpty(message = "materials 는 비어 있을 수 없습니다")
 	private List<String> materials;
+
+	@NotBlank(message = "color 는 공백이 아니어야 합니다")
 	private String color;
+
+	@NotBlank(message = "type 는 공백이 아니어야 합니다")
 	private String type;
+
+	@NotNull(message = "hasPrintOrTrims 는 null이 아니어야 합니다.")
 	private Boolean hasPrintOrTrims;
+
 	private List<String> additionalInfo;
 	private List<LaundrySymbol> laundrySymbols;
 	private List<solution> solutions;

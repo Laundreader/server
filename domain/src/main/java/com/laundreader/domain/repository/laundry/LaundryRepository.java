@@ -13,4 +13,7 @@ public interface LaundryRepository extends JpaRepository<Laundry, Long> {
 	List<Laundry> findAllByUserId(Long userId);
 
 	List<Laundry> findAllByIdInAndUserId(List<Long> laundryIds, Long userId);
+
+	List<Laundry> findAllByUserIdOrderByCreatedAtDesc(Long userId);
+
 }

@@ -38,7 +38,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
 		// 이메일 필수, 닉네임 랜덤 지정
 		String email = userInfo.getEmail();
-		String nickname = userInfo.getNickname();
 
 		// 필수 정보 체크
 		if (email == null) {
@@ -54,7 +53,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 			.orElseGet(() -> {
 				User newUser = User.builder()
 					.email(email)
-					.nickname(nickname)
+					.nickname(userInfo.getNickname())
 					.provider(Provider.valueOf(registrationId.toUpperCase()))
 					.build();
 				isFirstLogin.set(true);

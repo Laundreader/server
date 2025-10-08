@@ -13,20 +13,5 @@ public class NaverUserInfo implements OAuth2UserInfo {
 	public String getEmail() {
 		return (String)attributes.get("email");
 	}
-
-	@Override
-	public String getAgeRange() {
-		return (String)attributes.get("age");
-	}
-
-	@Override
-	public String extractNickname() {
-		return (String)attributes.get("nickname");
-	}
-
-	@Override
-	public String getGender() {
-		return (String)attributes.get("gender");
-	}
 }
 

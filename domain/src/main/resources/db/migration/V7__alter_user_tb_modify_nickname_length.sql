@@ -1,0 +1,2 @@
+ALTER TABLE user_tb
+MODIFY COLUMN nickname VARCHAR(12);

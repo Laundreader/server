@@ -36,8 +36,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 		Map<String, Object> attributes = oAuth2User.getAttributes();
 		OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, attributes);
 
-		// 이메일 필수
-		// 닉네임 선택
+		// 이메일 필수, 닉네임 랜덤 지정
 		String email = userInfo.getEmail();
 		String nickname = userInfo.getNickname();
 
@@ -52,16 +51,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 		// DB 저장/조회
 		AtomicBoolean isFirstLogin = new AtomicBoolean(false);
 		User user = userRepository.findByEmailAndStatus(email, UserStatus.ACTIVE)
-			.map(u -> {
-				// 이미 다른 provider로 가입된 경우
-				if (!u.getProvider().name().equalsIgnoreCase(registrationId)) {
-					throw new OAuth2AuthenticationException(
-						new OAuth2Error("409"),
-						"이미 연결된 계정이 있습니다."
-					);
-				}
-				return u;
-			})
 			.orElseGet(() -> {
 				User newUser = User.builder()
 					.email(email)

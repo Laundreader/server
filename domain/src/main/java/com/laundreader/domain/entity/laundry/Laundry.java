@@ -1,6 +1,10 @@
 package com.laundreader.domain.entity.laundry;
 
+import java.sql.Timestamp;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.laundreader.domain.converter.LaundrySymbolConverter;
 import com.laundreader.domain.converter.SolutionConverter;
@@ -69,6 +73,11 @@ public class Laundry {
 	private String labelImageKey;
 	private String clothesImageKey;
 	private String thumbnailImageKey;
+
+	@CreationTimestamp
+	private Timestamp createdAt;
+	@UpdateTimestamp
+	private Timestamp updatedAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)

@@ -81,11 +81,13 @@ public class HamperService {
 	}
 
 	private HamperGetResponse buildHamper(Long userId) {
-		List<Laundry> laundry = laundryRepository.findAllByUserId(userId);
+		List<Laundry> laundry = laundryRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
 
 		List<HamperGetResponse.HamperLaundryDTO> hamperItems = laundry.stream()
-			.map(l -> new HamperGetResponse.HamperLaundryDTO(l.getId(),
-				getPresignedUrlWithCache(l.getThumbnailImageKey())))
+			.map(l -> new HamperGetResponse.HamperLaundryDTO(
+				l.getId(),
+				getPresignedUrlWithCache(l.getThumbnailImageKey()))
+			)
 			.toList();
 
 		return new HamperGetResponse(hamperItems);

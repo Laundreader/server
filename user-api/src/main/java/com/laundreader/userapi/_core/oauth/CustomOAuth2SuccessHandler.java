@@ -72,6 +72,18 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 		response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 		response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
+		/*
+		 * localhost 개발을 위한 코드
+		 * */
+		ResponseCookie accessLocalTokenCookie = jwtCookieService.createLocalAccessTokenCookie(tokens.getAccessToken());
+		ResponseCookie refreshLocalTokenCookie = jwtCookieService.createLocalRefreshTokenCookie(
+			tokens.getRefreshToken());
+		response.addHeader(HttpHeaders.SET_COOKIE, accessLocalTokenCookie.toString());
+		response.addHeader(HttpHeaders.SET_COOKIE, refreshLocalTokenCookie.toString());
+		/*
+		 * localhost 개발을 위한 코드
+		 * */
+
 		// 토큰 및 닉네임 전달을 위한 redirect
 		String encodedNickname = URLEncoder.encode(user.getNickname(), StandardCharsets.UTF_8);
 		response.sendRedirect(REDIRECT_URI

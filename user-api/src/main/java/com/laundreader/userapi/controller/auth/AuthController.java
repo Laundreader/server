@@ -44,6 +44,20 @@ public class AuthController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 		headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+		/*
+		 * localhost 개발을 위한 코드
+		 * */
+		ResponseCookie accessLocalTokenCookie = jwtCookieService.createLocalAccessTokenCookie(
+			reissuedTokens.getAccessToken());
+		ResponseCookie refreshLocalTokenCookie = jwtCookieService.createLocalRefreshTokenCookie(
+			reissuedTokens.getRefreshToken());
+		headers.add(HttpHeaders.SET_COOKIE, accessLocalTokenCookie.toString());
+		headers.add(HttpHeaders.SET_COOKIE, refreshLocalTokenCookie.toString());
+		/*
+		 * localhost 개발을 위한 코드
+		 * */
+
 		return new ResponseEntity<>(ApiUtils.success(null), headers, HttpStatus.OK);
 	}
 
@@ -63,6 +77,18 @@ public class AuthController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 		headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+		/*
+		 * localhost 개발을 위한 코드
+		 * */
+		ResponseCookie localAccessTokenCookie = jwtCookieService.clearLocalAccessTokenCookie();
+		ResponseCookie localRefreshTokenCookie = jwtCookieService.clearLocalRefreshTokenCookie();
+		headers.add(HttpHeaders.SET_COOKIE, localAccessTokenCookie.toString());
+		headers.add(HttpHeaders.SET_COOKIE, localRefreshTokenCookie.toString());
+		/*
+		 * localhost 개발을 위한 코드
+		 * */
+
 		return new ResponseEntity<>(headers, HttpStatus.NO_CONTENT);
 	}
 }

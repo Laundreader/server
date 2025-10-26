@@ -1,7 +1,11 @@
 package com.laundreader.userapi.service.laundry;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CachePut;
@@ -48,17 +52,26 @@ public class HamperService {
 	public HamperSolutionResponse getHamperSolution(List<Long> laundryIds, Long userId) {
 		List<Laundry> laundries = laundryRepository.findAllByIdInAndUserId(laundryIds, userId);
 
-		if (laundries.size() != laundryIds.size()) {
-			// 누락된 ID 확인
-			Set<Long> foundIds = laundries.stream()
-				.map(Laundry::getId)
-				.collect(Collectors.toSet());
-			List<Long> missingIds = laundryIds.stream()
-				.filter(id -> !foundIds.contains(id))
+		/*
+		 * 존재하지 않거나 본인 소유가 아닌 세탁물 필터링
+		 * */
+		Set<Long> foundIds = laundries.stream()
+			.map(Laundry::getId)
+			.collect(Collectors.toSet());
+
+		Set<Long> requestedIds = new HashSet<>(laundryIds);
+		requestedIds.removeAll(foundIds);
+
+		if (!requestedIds.isEmpty()) {
+			List<Long> missingIds = requestedIds.stream()
+				.sorted()
 				.toList();
 			throw new Exception404("Laundry not found or not yours: " + missingIds);
 		}
 
+		/*
+		 * 솔루션 생성
+		 * */
 		HamperDTO hamper = HamperDTO.fromEntities(laundries);
 		String inputData = null;
 		try {
@@ -71,13 +84,36 @@ public class HamperService {
 		HamperSolutionDTO clovaResponse = clovaStudioService.laundrySolutionHamper(
 			inputData);
 
+		/*
+		 * 응답 생성
+		 * */
+		Map<Long, Laundry> laundryMap = laundries.stream()
+			.collect(Collectors.toMap(Laundry::getId, Function.identity()));
+
 		return new HamperSolutionResponse(
 			clovaResponse.getGroups().stream()
 				.map(g -> new HamperSolutionResponse.groupDTO(
-					g.getId(), g.getName(), g.getSolution(), g.getLaundryIds()
+					g.getId(),
+					g.getName(),
+					g.getSolution(),
+					getLaundries(laundryMap, g.getLaundryIds())
 				))
 				.toList()
 		);
+	}
+
+	private List<HamperSolutionResponse.SolutionLaundryDTO> getLaundries(Map<Long, Laundry> laundryMap,
+		List<Integer> laundryIds) {
+		return laundryIds.stream()
+			.map(Long::valueOf)
+			.sorted()
+			.map(laundryMap::get) // 없으면 null
+			.filter(Objects::nonNull) // 혹시 null이면 필터링
+			.map(l -> new HamperSolutionResponse.SolutionLaundryDTO(
+				l.getId(),
+				getPresignedUrlWithCache(l.getThumbnailImageKey())
+			))
+			.toList();
 	}
 
 	private HamperGetResponse buildHamper(Long userId) {
@@ -97,7 +133,7 @@ public class HamperService {
 		if (key == null)
 			return null;
 		return presignedUrlCache.getOrGenerate(AppConstants.LAUNDRY_IMAGE_BUCKET_NAME, key,
-			AppConstants.LAUNDRY_IMAGE_TTL);
+			AppConstants.LAUNDRY_THUMBNAIL_TTL);
 	}
 
 }

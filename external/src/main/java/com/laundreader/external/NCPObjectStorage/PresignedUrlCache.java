@@ -19,7 +19,9 @@ public class PresignedUrlCache {
 			return cachedUrl;
 
 		String url = ncpStorageService.generateGetPresignedUrl(bucketName, s3Key, expirationSeconds);
-		redisService.setString(s3Key, url, expirationSeconds * 1000);
+		// presigned URL 전체 유효시간의 50%만 캐싱
+		long cacheTTL = (long)(expirationSeconds * 1000 * 0.5);
+		redisService.setString(s3Key, url, cacheTTL);
 		return url;
 	}
 }

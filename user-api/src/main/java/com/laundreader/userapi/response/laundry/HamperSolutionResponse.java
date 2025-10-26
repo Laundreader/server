@@ -16,6 +16,13 @@ public class HamperSolutionResponse {
 		private int id;
 		private String name;
 		private String solution;
-		private List<Integer> laundryIds;
+		private List<SolutionLaundryDTO> laundries;
+	}
+
+	@Getter
+	@AllArgsConstructor
+	public static class SolutionLaundryDTO {
+		private Long id;
+		private String thumbnail;
 	}
 }

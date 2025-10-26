@@ -68,6 +68,9 @@ public class User {
 	@UpdateTimestamp
 	private Timestamp updatedAt;
 
+	@UpdateTimestamp
+	private Timestamp prvcClctAgreAt;
+
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private UserOAuthToken oAuthToken;
 

@@ -45,6 +45,9 @@ management:
   endpoints:
     web:
       base-path: /actuator
+  health:
+    diskspace:
+      enabled: false
 
 server:
   address: 0.0.0.0

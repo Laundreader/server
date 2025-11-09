@@ -1,5 +1,5 @@
 # OpenJDK 21 기반 이미지 사용
-FROM openjdk:21-jdk
+FROM amazoncorretto:21
 
 # 빌드된 JAR 파일 복사
 COPY build/libs/*.jar app.jar

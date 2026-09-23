@@ -9,9 +9,9 @@ pipeline {
         DOCKER_REPO = "chaewon012/laundreader"
         IMAGE_TAG = "v${BUILD_NUMBER}"
         USER_API_DOCKERFILE_PATH = "user-api/Dockerfile"
-        COMPOSE_FILE = "docker-compose-app.yml"
+        COMPOSE_FILE = "docker-compose-single.yml"
         SSH_USER = "root"
-        SSH_HOST = "prod-server-a.laundreader.com"
+        SSH_HOST = "211.233.211.33"
     }
     stages {
         stage('Checkout') {
@@ -73,11 +73,11 @@ pipeline {
                             # 최신 Docker 이미지 pull
                             docker pull ${DOCKER_REPO}:latest
 
-                            # 기존 컨테이너 중지 및 제거 (app만)
-                            docker-compose -f ${COMPOSE_FILE} down app || true
+                            # DB/Redis 유지 및 확인
+                            docker compose -f ${COMPOSE_FILE} up -d mysql redis
 
-                            # 새 컨테이너 실행
-                            docker-compose -f ${COMPOSE_FILE} up -d app
+                            # 앱만 새 이미지로 교체
+                            docker compose -f ${COMPOSE_FILE} up -d --no-deps app
 
                             # Health 체크
                             sleep 5 &&
